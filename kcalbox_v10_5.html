@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KcalBox v10.5</title>
+    <style>
+        :root { --primary: #000; --accent: #deff9a; --success: #27ae60; --danger: #ef4444; --dual: #c084fc; --fatty: #f59e0b; --carby: #38bdf8; --bg: #0f172a; --card-bg: #111; --text: #f5f5f5; --text-light: #daffde; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; justify-content: center; min-height: 100vh; }
+        
+        .phone-container { width: 100%; max-width: 450px; background-color: var(--card-bg); height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.5); border: 1px solid #333; position: relative; }
+        
+        header { background-color: var(--primary); color: white; padding: 15px; text-align: center; border-bottom: 2px solid var(--accent); flex-shrink: 0; }
+        header h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 3px; font-weight: 900;}
+        
+        .content { flex: 1; padding: 20px 20px 40px 20px; overflow-y: auto; height: 100%; -webkit-overflow-scrolling: touch; }
+        
+        .screen { display: none; } .screen.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        h2 { font-size: 1.1rem; margin-bottom: 15px; border-left: 4px solid var(--accent); padding-left: 10px; }
+        
+        .config-panel { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #333; }
+        .config-title { font-weight: bold; color: #f5f5f5; margin-bottom: 10px; text-align: center; font-size: 0.9rem; text-transform: uppercase;}
+        
+        .input-group { margin-bottom: 10px; display: flex; gap: 10px; }
+        .input-box { flex: 1; }
+        .input-box label { display: block; font-size: 0.75rem; margin-bottom: 4px; color: var(--text-light); }
+        .input-box input[type="number"] { width: 100%; padding: 10px; font-size: 1rem; background: #000; border: 1px solid #444; color: #fff; text-align: center; border-radius: 6px; font-weight: bold; }
+        
+        .main-kcal-input input[type="number"] { border-color: var(--accent) !important; color: var(--accent) !important; font-size: 1.3rem !important; }
+
+        .macro-sliders { display: grid; gap: 8px; margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px; }
+        .macro-row { display: flex; align-items: center; justify-content: space-between; }
+        .macro-row label { font-size: 0.8rem; width: 60px; font-weight: bold;}
+        .macro-row input[type="range"] { flex: 1; margin: 0 10px; accent-color: var(--accent); }
+        .macro-row span { width: 45px; text-align: right; font-size: 0.9rem; font-weight: bold; color: var(--accent);}
+
+        .error-msg { color: #e74c3c; font-size: 0.8rem; text-align: center; margin-top: 5px; display: none; font-weight: bold; }
+        
+        .btn { display: block; width: 100%; background: var(--accent); color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; cursor: pointer; text-transform: uppercase; font-size: 0.9rem;}
+        .btn-secondary { background: #334155; color: white; }
+        .btn-danger { background: var(--danger); color: white; margin-top: -5px; border: 2px dashed #991b1b; }
+        .btn-save { background: #3b82f6; color: white; margin-bottom: 20px;}
+        .btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+        
+        .option-card { border: 1px solid #333; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; background: #0a0a0a; transition: 0.2s;}
+        .option-card.selected { border-color: var(--accent); background: #1a2210; }
+        
+        /* Etiquetas y Bordes por tipo */
+        .option-card.dual { border-color: #6b21a8; background: #1a1025; }
+        .option-card.dual.selected { border-color: var(--dual); background: #2e1c4a; box-shadow: 0 0 12px rgba(192, 132, 252, 0.3); }
+        .badge-dual { font-size: 0.65rem; background: var(--dual); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        
+        .option-card.fatty { border-color: #d97706; background: #2b1408; }
+        .option-card.fatty.selected { border-color: var(--fatty); background: #451a03; box-shadow: 0 0 12px rgba(245, 158, 11, 0.3); }
+        .badge-fatty { font-size: 0.65rem; background: var(--fatty); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        
+        .option-card.carby { border-color: #0284c7; background: #0f172a; }
+        .option-card.carby.selected { border-color: var(--carby); background: #0c4a6e; box-shadow: 0 0 12px rgba(56, 189, 248, 0.3); }
+        .badge-carby { font-size: 0.65rem; background: var(--carby); color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 8px; vertical-align: middle; }
+        
+        .dual-msg, .fatty-msg, .carby-msg { font-size: 0.8rem; margin-top: 5px; font-weight: bold; display: block;}
+        .dual-msg { color: var(--dual); }
+        .fatty-msg { color: var(--fatty); }
+        .carby-msg { color: var(--carby); }
+        
+        .combo-box { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--accent); }
+        .summary-box { background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .banner { background: var(--accent); color: #000; padding: 15px; border-radius: 10px; text-align: center; font-weight: 800; font-size: 1.2rem; margin-bottom: 20px; }
+        
+        select { width: 100%; padding: 10px; margin-top: 10px; background: #222; color: #fff; border-radius: 5px; border: 1px solid #444; }
+        p { line-height: 1.5; margin-bottom: 8px;}
+        .macro-data { color: #94a3b8; font-size: 0.9rem; margin-top: 5px; display: inline-block; }
+        .highlight-unit { color: #deff9a; font-weight: bold; }
+        .skipped-text { color: var(--danger); font-style: italic; font-weight: bold; }
+        
+        .macro-preview { margin-top: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+        .macro-box { background: #000; border: 1px solid #333; padding: 8px; border-radius: 8px; font-size: 0.75rem; color: var(--text-light); }
+        .macro-box span { display: block; font-weight: bold; color: var(--accent); font-size: 1rem; margin-top: 3px; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--card-bg); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        
+        /* Opciones de complementos proteicos grasos */
+        .fatty-extras { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid var(--fatty); }
+        .fatty-extra-title { color: var(--fatty); font-weight: bold; font-size: 0.9rem; margin-bottom: 0px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .fatty-extra-list { display: none; margin-top: 15px; }
+        .fatty-extra-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 0.95rem; color: #f5f5f5; }
+        
+        .kcal-breakdown { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+        .kcal-breakdown span { display: inline-block; width: 30%; text-align: center; }
+        
+    </style>
+</head>
+<body>
+<div class="phone-container">
+    <header><h1>KCALBOX (v10.5)</h1><p style="color: #94a3b8; font-size: 0.75rem;">ALIMENTANDO A LA BESTIA</p></header>
+    <div class="content">
+        <!-- WELCOME & CONFIG (PERFIL) -->
+        <div id="screen-welcome" class="screen active">
+            
+            <div class="config-panel">
+                <div class="config-title">👤 PERFIL Y ENERGÍA</div>
+                <div class="input-group">
+                    <div class="input-box">
+                        <label>Peso Actual (kg)</label>
+                        <input type="number" id="weight" placeholder="Ej: 75">
+                    </div>
+                    <div class="input-box">
+                        <label>Kcal Actuales</label>
+                        <input type="number" id="current-kcal" placeholder="Ej: 2800">
+                    </div>
+                </div>
+                <div class="input-group main-kcal-input" style="margin-top:15px;">
+                    <div class="input-box">
+                        <label style="color: var(--accent); font-weight:bold;">🎯 Calorías Objetivo (Dieta)</label>
+                        <input type="number" id="total-calories" value="2500" step="50" oninput="calculateMacros()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-panel">
+                <div class="config-title">⚙️ REPARTO DE MACROS (%)</div>
+                <div class="macro-sliders">
+                    <div class="macro-row">
+                        <label>🥩 Prot.</label>
+                        <input type="range" id="pct-p" min="10" max="60" value="35" oninput="syncSliders()">
+                        <span id="lbl-pct-p">35%</span>
+                    </div>
+                    <div class="macro-row">
+                        <label>🍞 Hidr.</label>
+                        <input type="range" id="pct-h" min="10" max="60" value="38" oninput="syncSliders()">
+                        <span id="lbl-pct-h">38%</span>
+                    </div>
+                    <div class="macro-row">
+                        <label>🥑 Grasa</label>
+                        <input type="range" id="pct-g" min="10" max="60" value="27" oninput="syncSliders()">
+                        <span id="lbl-pct-g">27%</span>
+                    </div>
+                </div>
+                <div id="macro-error" class="error-msg">Los porcentajes deben sumar 100%</div>
+                
+                <div class="macro-preview" id="macro-preview-box">
+                    <div class="macro-box">Proteína<br><span id="val-p">0g</span></div>
+                    <div class="macro-box">Hidratos<br><span id="val-h">0g</span></div>
+                    <div class="macro-box">Grasas<br><span id="val-g">0g</span></div>
+                </div>
+            </div>
+            
+            <button class="btn btn-save" onclick="saveProfile()">💾 GUARDAR PERFIL</button>
+            <button id="btn-start" class="btn" onclick="nextScreen('screen-meal')">DISEÑAR MENÚ</button>
+        </div>
+        
+        <!-- SELECT MEAL -->
+        <div id="screen-meal" class="screen">
+            <h2>Momento del día:</h2>
+            <button class="btn" onclick="startMeal('desayuno')">🍳 Desayuno</button>
+            <button class="btn" onclick="startMeal('comida_cena')">🍽️ Comida / Cena</button>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-welcome')">Atrás (Ajustar Config)</button>
+        </div>
+
+        <!-- SELECT MODE -->
+        <div id="screen-mode" class="screen">
+            <h2>Modo de configuración:</h2>
+            <button class="btn" onclick="setMode('modular')">🔄 Bloques Modulares</button>
+            <button id="btn-epicos-mode" class="btn" style="background:#fbbf24;" onclick="setMode('epico')">✨ Platos Épicos Listos</button>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-meal')">Atrás</button>
+        </div>
+
+        <!-- HIDRATOS -->
+        <div id="screen-hidratos" class="screen">
+            <h2>Paso 1: Hidratos Base</h2>
+            <button class="btn btn-danger" onclick="skipStep('hidratos')">🚫 Prescindir (Repartir Kcal)</button>
+            <div id="hidratos-list"></div>
+            <div class="combo-box" id="mix-box-hidratos">
+                <label style="font-weight:bold; display:block; cursor: pointer;"><input type="checkbox" id="mix-hidratos" onchange="toggleMix('hidratos')"> Combinar 50/50 con:</label>
+                <select id="sel-hidratos" style="display:none"></select>
+            </div>
+            <button class="btn" onclick="nextStep('proteinas')">Siguiente Paso</button>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-mode')">Atrás</button>
+        </div>
+
+        <!-- PROTEINAS -->
+        <div id="screen-proteinas" class="screen">
+            <h2>Paso 2: Proteína Base</h2>
+            <button class="btn btn-danger" onclick="skipStep('proteinas')">🚫 Prescindir (Repartir Kcal)</button>
+            <div id="proteinas-list"></div>
+            <div class="combo-box" id="mix-box-proteinas">
+                <label style="font-weight:bold; display:block; cursor: pointer;"><input type="checkbox" id="mix-proteinas" onchange="toggleMix('proteinas')"> Combinar con:</label>
+                <select id="sel-proteinas" style="display:none"></select>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 5px;">*Si mezclas Carne fresca y Fiambre, el reparto será automático 80/20. Si mezclas Huevos, será 50/50.</p>
+            </div>
+            
+            <div class="fatty-extras" id="fatty-extras-box">
+                <div class="fatty-extra-title" onclick="toggleFattyExtras()">
+                    <span>➕ Añadir Complemento Graso (Resta Grasa)</span>
+                    <span id="fatty-icon">▼</span>
+                </div>
+                <div class="fatty-extra-list" id="fatty-list">
+                    <div class="fatty-extra-item">
+                        <input type="checkbox" id="ext-pep" style="margin-right:12px; transform: scale(1.3);"> <strong class="highlight-unit">15g</strong> de Pepperoni
+                    </div>
+                    <div class="fatty-extra-item">
+                        <input type="checkbox" id="ext-sal" style="margin-right:12px; transform: scale(1.3);"> <strong class="highlight-unit">15g</strong> de Salami
+                    </div>
+                    <div class="fatty-extra-item">
+                        <input type="checkbox" id="ext-pam" style="margin-right:12px; transform: scale(1.3);"> <strong class="highlight-unit">15g</strong> de Chorizo Pamplonica
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 10px;">*Las kcal de estos extras se deducirán de tu grasa y proteína principal.</p>
+                </div>
+            </div>
+            
+            <div class="combo-box" id="egg-opt">
+                <label style="font-weight:bold; display:block; cursor: pointer;"><input type="checkbox" id="add-egg"> 🍳 Añadir 1 Huevo (Reajusta carne y grasa)</label>
+            </div>
+            <button class="btn" onclick="nextStep('grasas')">Siguiente Paso</button>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-hidratos')">Atrás</button>
+        </div>
+
+        <!-- GRASAS -->
+        <div id="screen-grasas" class="screen">
+            <h2>Paso 3: Grasas / Sabor</h2>
+            <button class="btn btn-danger" onclick="skipStep('grasas')">🚫 Prescindir (Repartir Kcal)</button>
+            <div id="grasas-list"></div>
+            <div class="combo-box" id="mix-box-grasas">
+                <label style="font-weight:bold; display:block; cursor: pointer;"><input type="checkbox" id="mix-grasas" onchange="toggleMix('grasas')"> Combinar 50/50 con:</label>
+                <select id="sel-grasas" style="display:none"></select>
+            </div>
+            <button class="btn" style="background:#10b981; color:#fff;" onclick="finishMeal()">VER PLATO FINAL</button>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-proteinas')">Atrás</button>
+        </div>
+
+        <!-- EPICOS -->
+        <div id="screen-epicos" class="screen">
+            <h2>Fast-Food Fit & Platos Épicos:</h2>
+            <p style="font-size: 0.8rem; color: #94a3b8; text-align: center; margin-bottom: 15px;">Cantidades recalibradas matemáticamente según el bloque y tus macros.</p>
+            <div id="epicos-list"></div>
+            <button class="btn btn-secondary" onclick="nextScreen('screen-mode')">Atrás</button>
+        </div>
+
+        <!-- RESULTADO -->
+        <div id="screen-result" class="screen">
+            <div class="banner" id="res-cal"></div>
+            <div class="summary-box" id="res-detail"></div>
+            <div id="postre-container" style="background:#1a2210; border: 1px solid var(--accent); padding:15px; border-radius:10px; margin-top:15px;">
+                <p style="color:var(--accent); font-weight:bold; margin-bottom:5px;">🍫 POSTRE NOCTURNO</p>
+                <p style="font-size: 0.9rem;" id="res-postre"></p>
+            </div>
+            <button class="btn" style="margin-top:20px" onclick="resetApp()">DISEÑAR OTRA COMIDA</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // SISTEMA DE NOTIFICACIONES TOAST (Sustituye a los alerts nativos)
+    function showToast(msg, isSuccess = false) {
+        const el = document.createElement('div');
+        el.style.cssText = `position:fixed; top:20px; left:50%; transform:translateX(-50%); background:${isSuccess ? '#27ae60' : '#ef4444'}; color:white; padding:15px 20px; border-radius:8px; z-index:9999; font-weight:bold; box-shadow:0 10px 25px rgba(0,0,0,0.5); text-align:center; min-width:300px; font-family:-apple-system,sans-serif; animation: fadeIn 0.3s ease-out;`;
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.3s';
+            setTimeout(() => el.remove(), 300);
+        }, 3000);
+    }
+
+    const mealDistribution = { desayuno: 0.15, comida_cena: 0.31 };
+
+    // DB MATRIX 
+    const dbMatrix = {
+        hidratos: [
+            {id:'av', n:'Avena en copos', g_per_100k: 26, u_per_100k: 2.6, ut:'cdas'},
+            {id:'ar', n:'Arroz en seco', g_per_100k: 28, u_per_100k: 0.35, ut:'taza café'},
+            {id:'pt', n:'Patata cocida/asada', g_per_100k: 115, u_per_100k: 0.8, ut:'uds med'},
+            {id:'bo', n:'Patatas Airfryer', g_per_100k: 70, u_per_100k: 0.2, ut:'bolsa'},
+            {id:'tx', n:'Tortillas de trigo/maíz', g_per_100k: 32, u_per_100k: 0.9, ut:'uds'},
+            {id:'bi', n:'Tortas Biocentury', g_per_100k: 26, u_per_100k: 3, ut:'uds'},
+            {id:'pa', n:'Pasta seca', g_per_100k: 28, u_per_100k: 0.35, ut:'taza'},
+            {id:'gn', n:'Gnocchi de Patata', g_per_100k: 60, u_per_100k: 0.5, ut:'paquete'},
+            {id:'mz', n:'Maíz Dulce', g_per_100k: 95, u_per_100k: 3, ut:'cdas'},
+            {id:'pm', n:'Pan Molde Blanco', g_per_100k: 38, u_per_100k: 1.5, ut:'rebanadas'},
+            {id:'pi', n:'Pan Molde Integral', g_per_100k: 40, u_per_100k: 1.5, ut:'rebanadas'},
+            {id:'ph', n:'Pan Hamburguesa', g_per_100k: 36, u_per_100k: 0.45, ut:'panes'},
+            {id:'pb', n:'Pan Brioche Burger', g_per_100k: 32, u_per_100k: 0.4, ut:'panes'},
+            {id:'len', n:'Lentejas (Bote cocidas)', g_per_100k: 86, u_per_100k: 4, ut:'cdas', isDual: true, p_ratio: 0.31},
+            {id:'gar', n:'Garbanzos (Bote cocidos)', g_per_100k: 71, u_per_100k: 3, ut:'cdas', isDual: true, p_ratio: 0.21},
+            {id:'hab', n:'Alubias (Bote cocidas)', g_per_100k: 83, u_per_100k: 3.5, ut:'cdas', isDual: true, p_ratio: 0.26},
+            {id:'fr', n:'Frijoles Refritos', g_per_100k: 100, u_per_100k: 3, ut:'cdas colmadas'},
+            {id:'fd', n:'Fideos Chinos Noodles', g_per_100k: 28, u_per_100k: 0.3, ut:'nidos'}
+        ],
+        proteinas: [
+            {id:'po', n:'Pechuga Pollo/Pavo', g_per_100k: 90, u_per_100k: 0.4, ut:'pechuga', type:'fresca'},
+            {id:'te', n:'Ternera Picada Magra', g_per_100k: 70, u_per_100k: 0.2, ut:'bandeja', type:'fresca'},
+            {id:'ce', n:'Lomo Cerdo', g_per_100k: 75, u_per_100k: 0.8, ut:'filetes', type:'fresca'},
+            {id:'cpo', n:'Contramuslo Pollo', g_per_100k: 74, u_per_100k: 0.7, ut:'piezas', type:'fresca', isFatty: true, f_ratio: 0.4}, 
+            {id:'sl', n:'Salchichas Selva', g_per_100k: 60, u_per_100k: 1.1, ut:'uds', type:'fresca'},
+            {id:'ht', n:'Burger Ternera', g_per_100k: 60, u_per_100k: 0.6, ut:'burger', type:'fresca'},
+            {id:'hc', n:'Tiras Pollo Estilo KFC', g_per_100k: 75, u_per_100k: 2, ut:'tiras grandes', type:'fresca'},
+            {id:'la', n:'Langostinos Cocidos', g_per_100k: 110, u_per_100k: 15, ut:'uds', type:'fresca'},
+            {id:'lo', n:'Lomo Embuchado', g_per_100k: 50, u_per_100k: 5, ut:'lonchas', type:'fiambre'},
+            {id:'se', n:'Jamón Serrano', g_per_100k: 55, u_per_100k: 3, ut:'lonchas', type:'fiambre'},
+            {id:'yo', n:'York/Pavo', g_per_100k: 110, u_per_100k: 8, ut:'lonchas', type:'fiambre'}, 
+            {id:'chp', n:'Chorizo de Pavo', g_per_100k: 38, u_per_100k: 4, ut:'lonchas', type:'fiambre', isFatty: true, f_ratio: 0.62},
+            {id:'sap', n:'Salchichón de Pavo', g_per_100k: 40, u_per_100k: 4, ut:'lonchas', type:'fiambre', isFatty: true, f_ratio: 0.61},
+            {id:'bac', n:'Bacalao Fresco', g_per_100k: 121, u_per_100k: 0.6, ut:'lomo', type:'fresca'}, 
+            {id:'at', n:'Atún natural', g_per_100k: 100, u_per_100k: 1.5, ut:'latas', type:'general'},
+            {id:'sf', n:'Salmón Fresco', g_per_100k: 60, u_per_100k: 0.4, ut:'lomo', type:'general'},
+            {id:'sa', n:'Salmón Ahumado', g_per_100k: 85, u_per_100k: 1.5, ut:'lonchas', type:'general'},
+            {id:'yl', n:'Yogur Natural Entero', g_per_100k: 161, u_per_100k: 1.3, ut:'uds', type:'general', isFatty: true, f_ratio: 0.48}, 
+            {id:'tf', n:'Tofu Firme', g_per_100k: 135, u_per_100k: 0.5, ut:'paquete', type:'general'},
+            {id:'sei', n:'Seitán', g_per_100k: 76, u_per_100k: 0.4, ut:'paquete', type:'general'}, 
+            {id:'soja', n:'Soja Texturizada', g_per_100k: 50, u_per_100k: 3.5, ut:'puñados', type:'general', isCarby: true, h_ratio: 0.60},
+            {id:'hue', n:'Huevos Enteros', g_per_100k: 70, u_per_100k: 1.4, ut:'huevos', type:'general', isFatty: true, f_ratio: 0.6}, 
+            {id:'hu', n:'Huevos+Claras', g_per_100k: 0, isEgg:true, type:'general'} 
+        ],
+        grasas: [
+            {id:'ag', n:'Aguacate', g_per_100k: 62, u_per_100k: 0.4, ut:'aguacate'},
+            {id:'mo', n:'Queso Mozzarella Rallado', g_per_100k: 33, u_per_100k: 0.3, ut:'bolsa'},
+            {id:'ql', n:'Queso Light', g_per_100k: 38, u_per_100k: 1.1, ut:'lonchas'},
+            {id:'phl', n:'Queso Philadelphia Light', g_per_100k: 65, u_per_100k: 3, ut:'cdas'}, 
+            {id:'qf', n:'Queso Feta', g_per_100k: 38, u_per_100k: 0.3, ut:'paquete'},
+            {id:'hum', n:'Hummus', g_per_100k: 34, u_per_100k: 1.5, ut:'cdas colmadas'}, 
+            {id:'ac', n:'Aceite de Oliva', g_per_100k: 11, u_per_100k: 1.1, ut:'cdas'},
+            {id:'ma', n:'Mayonesa Light', g_per_100k: 35, u_per_100k: 2.2, ut:'cdas'},
+            {id:'ca', n:'Crema Cacahuete', g_per_100k: 16, u_per_100k: 1.1, ut:'cditas'},
+            {id:'ss', n:'Salsa Soja / Teriyaki', g_per_100k: 25, u_per_100k: 1.5, ut:'cdas'},
+            {id:'gaz', n:'Gazpacho Andaluz', g_per_100k: 222, u_per_100k: 1.1, ut:'vaso grande'}, 
+            {id:'salm', n:'Salmorejo', g_per_100k: 87, u_per_100k: 0.5, ut:'cuenco'} 
+        ]
+    };
+
+    const fattyExtrasDB = {
+        pep: { n: 'Pepperoni', kcal: 75, pKcal: 12.5, gKcal: 62.5 }, 
+        sal: { n: 'Salami', kcal: 60, pKcal: 12.5, gKcal: 47.5 },
+        pam: { n: 'Chorizo Pamplonica', kcal: 65, pKcal: 10, gKcal: 55 }
+    };
+
+    let appState = {
+        totalKcal: 2500, pct: { p: 35, h: 38, g: 27 }, grams: { p: 0, h: 0, g: 0 },
+        originalMealMacros: { p: 0, h: 0, g: 0 }, activeMealMacros: { p: 0, h: 0, g: 0 } 
+    };
+
+    let currentMeal = '';
+    let selections = { hidratos: '', proteinas: '', grasas: '', hidratos2: '', proteinas2: '', grasas2: '' };
+    let isMixChecked = { hidratos: false, proteinas: false, grasas: false };
+    let skipped = { hidratos: false, proteinas: false, grasas: false };
+    
+    let fattyExtrasSelected = [];
+    let finalKcal = { h: 0, p: 0, g: 0, extras: 0 };
+    let fatDeductionFromProtein = 0; 
+    let carbDeductionFromProtein = 0;
+
+    // LOCAL STORAGE INIT
+    function loadProfile() {
+        const saved = localStorage.getItem('kcalBoxProfile');
+        if (saved) {
+            const profile = JSON.parse(saved);
+            document.getElementById('weight').value = profile.weight || '';
+            document.getElementById('current-kcal').value = profile.currentKcal || '';
+            document.getElementById('total-calories').value = profile.targetKcal || 2500;
+            document.getElementById('pct-p').value = profile.pctP || 35;
+            document.getElementById('pct-h').value = profile.pctH || 38;
+            document.getElementById('pct-g').value = profile.pctG || 27;
+        }
+        syncSliders();
+    }
+    
+    function saveProfile() {
+        const profile = {
+            weight: document.getElementById('weight').value,
+            currentKcal: document.getElementById('current-kcal').value,
+            targetKcal: document.getElementById('total-calories').value,
+            pctP: document.getElementById('pct-p').value,
+            pctH: document.getElementById('pct-h').value,
+            pctG: document.getElementById('pct-g').value
+        };
+        localStorage.setItem('kcalBoxProfile', JSON.stringify(profile));
+        showToast('✅ Perfil guardado correctamente', true);
+    }
+
+    function syncSliders() {
+        let p = parseInt(document.getElementById('pct-p').value) || 0;
+        let h = parseInt(document.getElementById('pct-h').value) || 0;
+        let g = parseInt(document.getElementById('pct-g').value) || 0;
+        let total = p + h + g;
+        const errorMsg = document.getElementById('macro-error');
+        const btnStart = document.getElementById('btn-start');
+
+        document.getElementById('lbl-pct-p').textContent = p + '%';
+        document.getElementById('lbl-pct-h').textContent = h + '%';
+        document.getElementById('lbl-pct-g').textContent = g + '%';
+
+        if (total !== 100) {
+            errorMsg.style.display = 'block'; errorMsg.textContent = `Suman ${total}%. Deben sumar 100%.`; btnStart.disabled = true;
+        } else {
+            errorMsg.style.display = 'none'; btnStart.disabled = false; appState.pct = { p, h, g }; calculateMacros();
+        }
+    }
+
+    function calculateMacros() {
+        const cal = parseInt(document.getElementById('total-calories').value) || 2500;
+        appState.totalKcal = cal;
+        appState.grams.p = Math.round((cal * (appState.pct.p / 100)) / 4);
+        appState.grams.h = Math.round((cal * (appState.pct.h / 100)) / 4);
+        appState.grams.g = Math.round((cal * (appState.pct.g / 100)) / 9);
+
+        document.getElementById('val-p').textContent = appState.grams.p + 'g';
+        document.getElementById('val-h').textContent = appState.grams.h + 'g';
+        document.getElementById('val-g').textContent = appState.grams.g + 'g';
+    }
+
+    window.onload = loadProfile;
+
+    // NAVEGACIÓN
+    function nextScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        const contentDiv = document.querySelector('.content'); if(contentDiv) contentDiv.scrollTop = 0;
+    }
+
+    function startMeal(mealType) {
+        currentMeal = mealType;
+        const dist = mealDistribution[mealType];
+        appState.originalMealMacros = {
+            p: appState.totalKcal * (appState.pct.p / 100) * dist,
+            h: appState.totalKcal * (appState.pct.h / 100) * dist,
+            g: appState.totalKcal * (appState.pct.g / 100) * dist
+        };
+        resetActiveMacros();
+        nextScreen('screen-mode');
+    }
+
+    function resetActiveMacros() {
+        appState.activeMealMacros = { p: appState.originalMealMacros.p, h: appState.originalMealMacros.h, g: appState.originalMealMacros.g };
+        finalKcal = { h: 0, p: 0, g: 0, extras: 0 };
+        fatDeductionFromProtein = 0;
+        carbDeductionFromProtein = 0;
+    }
+
+    function setMode(mode) {
+        if (mode === 'epico') renderEpicos(); else renderStep('hidratos');
+    }
+    
+    function toggleFattyExtras() {
+        const list = document.getElementById('fatty-list');
+        const icon = document.getElementById('fatty-icon');
+        if (list.style.display === 'block') {
+            list.style.display = 'none';
+            icon.textContent = '▼';
+        } else {
+            list.style.display = 'block';
+            icon.textContent = '▲';
+        }
+    }
+
+    function skipStep(stepType) {
+        skipped[stepType] = true;
+        selections[stepType] = 'SKIP';
+        
+        let kcalToDistribute = 0;
+        let activeCategories = 0;
+        
+        if (stepType === 'hidratos') { kcalToDistribute = appState.activeMealMacros.h; appState.activeMealMacros.h = 0; }
+        if (stepType === 'proteinas') { kcalToDistribute = appState.activeMealMacros.p; appState.activeMealMacros.p = 0; }
+        if (stepType === 'grasas') { kcalToDistribute = appState.activeMealMacros.g; appState.activeMealMacros.g = 0; }
+
+        if (!skipped.hidratos) activeCategories++;
+        if (!skipped.proteinas) activeCategories++;
+        if (!skipped.grasas) activeCategories++;
+
+        if (activeCategories > 0) {
+            let extraKcalPerCategory = kcalToDistribute / activeCategories;
+            if (!skipped.hidratos) appState.activeMealMacros.h += extraKcalPerCategory;
+            if (!skipped.proteinas) appState.activeMealMacros.p += extraKcalPerCategory;
+            if (!skipped.grasas) appState.activeMealMacros.g += extraKcalPerCategory;
+        }
+
+        let nextStepType = '';
+        if (stepType === 'hidratos') nextStepType = 'proteinas';
+        if (stepType === 'proteinas') {
+            fattyExtrasSelected = [];
+            if(document.getElementById('ext-pep').checked) fattyExtrasSelected.push('pep');
+            if(document.getElementById('ext-sal').checked) fattyExtrasSelected.push('sal');
+            if(document.getElementById('ext-pam').checked) fattyExtrasSelected.push('pam');
+            nextStepType = 'grasas';
+        }
+        if (stepType === 'grasas') { finishMeal(); return; }
+        renderStep(nextStepType);
+    }
+
+    function getProteinKcalCalculated() {
+        let pKcal = appState.activeMealMacros.p;
+
+        if (!skipped.hidratos && selections.hidratos && selections.hidratos !== 'SKIP') {
+            const h1 = dbMatrix.hidratos.find(i => i.id === selections.hidratos);
+            let hKcal = isMixChecked.hidratos ? (appState.activeMealMacros.h / 2) : appState.activeMealMacros.h;
+            if (h1 && h1.isDual) pKcal -= (hKcal * h1.p_ratio); 
+            
+            if (isMixChecked.hidratos) {
+                let h2id = selections.hidratos2 || document.getElementById('sel-hidratos').value;
+                const h2 = dbMatrix.hidratos.find(i => i.id === h2id);
+                if (h2 && h2.isDual) pKcal -= (hKcal * h2.p_ratio);
+            }
+        }
+        
+        fattyExtrasSelected.forEach(extId => { pKcal -= fattyExtrasDB[extId].pKcal; });
+
+        const p1 = dbMatrix.proteinas.find(i => i.id === selections.proteinas);
+        if (document.getElementById('add-egg').checked && !skipped.proteinas) {
+            if (!p1 || !p1.isEgg) pKcal -= 30; 
+        }
+
+        return Math.max(0, pKcal);
+    }
+
+    function getCarbKcalCalculated() {
+        let hKcal = appState.activeMealMacros.h;
+        carbDeductionFromProtein = 0;
+
+        if (!skipped.proteinas && selections.proteinas && selections.proteinas !== 'SKIP') {
+            let pKcalTotal = getProteinKcalCalculated(); 
+            const p1 = dbMatrix.proteinas.find(i => i.id === selections.proteinas);
+            
+            if (isMixChecked.proteinas) {
+                let p2id = selections.proteinas2 || document.getElementById('sel-proteinas').value;
+                let p2 = dbMatrix.proteinas.find(i => i.id === p2id);
+                
+                let pct1 = 0.5; let pct2 = 0.5;
+                if (p1 && p2) {
+                    if ((p1.isEgg || p2.isEgg) && !(p1.isEgg && p2.isEgg)) {
+                        pct1 = 0.5; pct2 = 0.5; 
+                    } else if (p1.type === 'fresca' && p2.type === 'fiambre') { 
+                        pct1 = 0.8; pct2 = 0.2; 
+                    } else if (p1.type === 'fiambre' && p2.type === 'fresca') { 
+                        pct1 = 0.2; pct2 = 0.8; 
+                    }
+                }
+                
+                if (p1 && p1.isCarby) {
+                    let carbDeduction = (pKcalTotal * pct1 * p1.h_ratio);
+                    hKcal -= carbDeduction;
+                    carbDeductionFromProtein += carbDeduction;
+                }
+                if (p2 && p2.isCarby) {
+                    let carbDeduction = (pKcalTotal * pct2 * p2.h_ratio);
+                    hKcal -= carbDeduction;
+                    carbDeductionFromProtein += carbDeduction;
+                }
+            } else {
+                if (p1 && p1.isCarby) {
+                    let carbDeduction = (pKcalTotal * p1.h_ratio);
+                    hKcal -= carbDeduction;
+                    carbDeductionFromProtein += carbDeduction;
+                }
+            }
+        }
+        
+        return Math.max(0, hKcal);
+    }
+
+    function getFatKcalCalculated() {
+        let gKcal = appState.activeMealMacros.g;
+        fatDeductionFromProtein = 0;
+
+        fattyExtrasSelected.forEach(extId => {
+            gKcal -= fattyExtrasDB[extId].gKcal;
+            fatDeductionFromProtein += fattyExtrasDB[extId].gKcal;
+        });
+
+        const p1 = dbMatrix.proteinas.find(i => i.id === selections.proteinas);
+        if (document.getElementById('add-egg').checked && !skipped.proteinas) {
+            if (!p1 || !p1.isEgg) {
+                gKcal -= 45; 
+                fatDeductionFromProtein += 45;
+            }
+        }
+
+        if (!skipped.proteinas && selections.proteinas && selections.proteinas !== 'SKIP') {
+            let pKcalTotal = getProteinKcalCalculated(); 
+            
+            if (isMixChecked.proteinas) {
+                let p2id = selections.proteinas2 || document.getElementById('sel-proteinas').value;
+                let p2 = dbMatrix.proteinas.find(i => i.id === p2id);
+                
+                let pct1 = 0.5; let pct2 = 0.5;
+                if (p1 && p2) {
+                    if ((p1.isEgg || p2.isEgg) && !(p1.isEgg && p2.isEgg)) {
+                        pct1 = 0.5; pct2 = 0.5; 
+                    } else if (p1.type === 'fresca' && p2.type === 'fiambre') { 
+                        pct1 = 0.8; pct2 = 0.2; 
+                    } else if (p1.type === 'fiambre' && p2.type === 'fresca') { 
+                        pct1 = 0.2; pct2 = 0.8; 
+                    }
+                }
+                
+                if (p1 && p1.isFatty) {
+                    let fatDeduction = (pKcalTotal * pct1 * p1.f_ratio);
+                    gKcal -= fatDeduction;
+                    fatDeductionFromProtein += fatDeduction;
+                }
+                if (p2 && p2.isFatty) {
+                    let fatDeduction = (pKcalTotal * pct2 * p2.f_ratio);
+                    gKcal -= fatDeduction;
+                    fatDeductionFromProtein += fatDeduction;
+                }
+            } else {
+                if (p1 && p1.isFatty) {
+                    let fatDeduction = (pKcalTotal * p1.f_ratio);
+                    gKcal -= fatDeduction;
+                    fatDeductionFromProtein += fatDeduction;
+                }
+            }
+        }
+        
+        return Math.max(0, gKcal);
+    }
+
+    function renderStep(stepType) {
+        if (skipped[stepType]) {
+            let nextStepType = stepType === 'hidratos' ? 'proteinas' : (stepType === 'proteinas' ? 'grasas' : '');
+            if(nextStepType) renderStep(nextStepType); else finishMeal();
+            return;
+        }
+
+        const listDiv = document.getElementById(stepType + '-list');
+        const selectBox = document.getElementById('sel-' + stepType);
+        listDiv.innerHTML = ''; selectBox.innerHTML = '';
+
+        const items = [...dbMatrix[stepType]].sort((a, b) => a.n.localeCompare(b.n));
+        
+        let targetKcal = 0;
+        if (stepType === 'hidratos') targetKcal = getCarbKcalCalculated(); 
+        if (stepType === 'proteinas') targetKcal = getProteinKcalCalculated(); 
+        if (stepType === 'grasas') targetKcal = getFatKcalCalculated();
+
+        items.forEach(item => {
+            const card = document.createElement('div');
+            let isDualClass = item.isDual ? ' dual' : '';
+            let isFattyClass = item.isFatty ? ' fatty' : '';
+            let isCarbyClass = item.isCarby ? ' carby' : '';
+            card.className = 'option-card' + isDualClass + isFattyClass + isCarbyClass;
+            card.id = `card-${stepType}-${item.id}`;
+            
+            let gCalculated = 0; let visualText = "";
+            if (item.isEgg) {
+                let numHuevos = currentMeal === 'desayuno' ? 1 : 2;
+                let kcalHuevos = numHuevos * 75;
+                if (kcalHuevos > targetKcal) numHuevos = Math.max(1, Math.floor(targetKcal / 75));
+                kcalHuevos = numHuevos * 75;
+                let kcalRestantes = Math.max(0, targetKcal - kcalHuevos);
+                let gClaras = Math.round(kcalRestantes * 2); 
+                gCalculated = gClaras; 
+                visualText = `${numHuevos} huevo(s) + claras`;
+            } else {
+                let multiplier = targetKcal / 100;
+                gCalculated = Math.round(item.g_per_100k * multiplier);
+                let uCalculated = (item.u_per_100k * multiplier).toFixed(1).replace('.0', '');
+                visualText = `~${uCalculated} ${item.ut}`;
+            }
+
+            let dualBadge = item.isDual ? '<span class="badge-dual">🍞+🥩 MIXTO</span>' : '';
+            let fattyBadge = item.isFatty ? '<span class="badge-fatty">🥩+🥑 ALTA GRASA</span>' : '';
+            let carbyBadge = item.isCarby ? '<span class="badge-carby">🥩+🍞 ALTO HIDRATO</span>' : ''; 
+            
+            card.innerHTML = `<strong>${item.n}</strong>${dualBadge}${fattyBadge}${carbyBadge}<br><span class="macro-data">${gCalculated}g <span class="highlight-unit">(${visualText})</span></span>`;
+            
+            card.onclick = () => {
+                document.querySelectorAll(`#${stepType}-list .option-card`).forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected'); selections[stepType] = item.id;
+            };
+            listDiv.appendChild(card);
+            
+            const option = document.createElement('option'); option.value = item.id; option.textContent = item.n;
+            selectBox.appendChild(option);
+        });
+
+        if (stepType === 'proteinas') document.getElementById('egg-opt').style.display = 'block';
+        document.getElementById(`mix-${stepType}`).checked = isMixChecked[stepType];
+        toggleMix(stepType);
+        nextScreen('screen-' + stepType);
+    }
+
+    function toggleMix(stepType) {
+        const isChecked = document.getElementById(`mix-${stepType}`).checked;
+        isMixChecked[stepType] = isChecked;
+        document.getElementById(`sel-${stepType}`).style.display = isChecked ? 'block' : 'none';
+    }
+
+    function nextStep(nextStepType) {
+        let currentStepType = '';
+        if (nextStepType === 'proteinas') currentStepType = 'hidratos';
+        if (nextStepType === 'grasas') {
+            currentStepType = 'proteinas';
+            fattyExtrasSelected = [];
+            if(document.getElementById('ext-pep').checked) fattyExtrasSelected.push('pep');
+            if(document.getElementById('ext-sal').checked) fattyExtrasSelected.push('sal');
+            if(document.getElementById('ext-pam').checked) fattyExtrasSelected.push('pam');
+        }
+
+        if (!selections[currentStepType] || (selections[currentStepType] === '' && !skipped[currentStepType])) {
+            showToast("⚠️ Por favor, selecciona una opción o usa Prescindir.", false); return;
+        }
+        
+        if (isMixChecked[currentStepType]) {
+            selections[currentStepType + '2'] = document.getElementById('sel-' + currentStepType).value;
+        }
+
+        renderStep(nextStepType);
+    }
+
+    function formatIngredient(item, targetKcal, applyEggReduction = false) {
+        let usableKcal = targetKcal;
+        if (applyEggReduction) { usableKcal -= 30; if (usableKcal < 0) usableKcal = 0; }
+
+        if (item.isEgg) {
+            let numHuevos = currentMeal === 'desayuno' ? 1 : (targetKcal < appState.originalMealMacros.p ? 1 : 2);
+            let kcalRestantes = usableKcal - (numHuevos * 75);
+            let gClaras = Math.max(0, Math.round(kcalRestantes * 2)); // NUEVO CALCULO CLARAS (2g x 1kcal)
+            return `<strong class="highlight-unit">${numHuevos} Huevo(s)</strong> + ${gClaras}g claras`;
+        } else {
+            let multiplier = usableKcal / 100;
+            let gCalculated = Math.round(item.g_per_100k * multiplier);
+            let uCalculated = (item.u_per_100k * multiplier).toFixed(1).replace('.0', '');
+            return `<strong class="highlight-unit">${gCalculated}g</strong> (~${uCalculated} ${item.ut}) de ${item.n}`;
+        }
+    }
+
+    function finishMeal() {
+        if (isMixChecked.hidratos) selections.hidratos2 = document.getElementById('sel-hidratos').value;
+        if (isMixChecked.proteinas) selections.proteinas2 = document.getElementById('sel-proteinas').value;
+        if (isMixChecked.grasas) selections.grasas2 = document.getElementById('sel-grasas').value;
+
+        if (!selections.grasas && !skipped.grasas) {
+            showToast("⚠️ Selecciona la grasa o pulsa Prescindir.", false); return;
+        }
+
+        let resHTML = '';
+        finalKcal = { h: 0, p: 0, g: 0, extras: 0 };
+        
+        let hKcalFinal = getCarbKcalCalculated();
+
+        // HIDRATOS
+        resHTML += `<p>🍞 <strong>Hidratos:</strong><br>`;
+        if (skipped.hidratos) {
+            resHTML += `<span class="skipped-text">Omitido (Kcal repartidas al resto)</span></p>`;
+        } else {
+            const h1 = dbMatrix.hidratos.find(i => i.id === selections.hidratos);
+            
+            finalKcal.h += carbDeductionFromProtein;
+            
+            if(isMixChecked.hidratos) {
+                const h2 = dbMatrix.hidratos.find(i => i.id === selections.hidratos2);
+                let halfKcal = hKcalFinal / 2;
+                finalKcal.h += halfKcal * 2;
+                resHTML += `<span style="color:#daffde">50%: ${formatIngredient(h1, halfKcal)}<br>50%: ${formatIngredient(h2, halfKcal)}</span></p>`;
+            } else {
+                finalKcal.h += hKcalFinal;
+                resHTML += `<span style="color:#daffde">100%: ${formatIngredient(h1, hKcalFinal)}</span></p>`;
+            }
+            
+            if (carbDeductionFromProtein > 0) {
+                resHTML += `<span class="carby-msg">ℹ️ Hidrato libre reducido para compensar el exceso de la proteína (Soja Texturizada).</span>`;
+            }
+        }
+
+        // PROTEINAS 
+        resHTML += `<p style="margin-top:10px;">🥩 <strong>Proteína:</strong><br>`;
+        if (skipped.proteinas) {
+            resHTML += `<span class="skipped-text">Omitido (Kcal repartidas al resto)</span></p>`;
+        } else {
+            const p1 = dbMatrix.proteinas.find(i => i.id === selections.proteinas);
+            let addEgg = document.getElementById('add-egg').checked;
+            let pKcalFinal = getProteinKcalCalculated(); 
+            
+            if (isMixChecked.proteinas) {
+                const p2 = dbMatrix.proteinas.find(i => i.id === selections.proteinas2);
+                let pct1 = 0.5; let pct2 = 0.5;
+                if ((p1.isEgg || p2.isEgg) && !(p1.isEgg && p2.isEgg)) {
+                    pct1 = 0.5; pct2 = 0.5; 
+                } else if (p1.type === 'fresca' && p2.type === 'fiambre') { 
+                    pct1 = 0.8; pct2 = 0.2; 
+                } else if (p1.type === 'fiambre' && p2.type === 'fresca') { 
+                    pct1 = 0.2; pct2 = 0.8; 
+                }
+                let kcal1 = pKcalFinal * pct1; let kcal2 = pKcalFinal * pct2;
+                finalKcal.p += kcal1 + kcal2;
+                resHTML += `<span style="color:#daffde">${pct1*100}%: ${formatIngredient(p1, kcal1)}<br>${pct2*100}%: ${formatIngredient(p2, kcal2)}</span></p>`;
+            } else if (addEgg && !p1.isEgg) {
+                finalKcal.p += pKcalFinal;
+                finalKcal.extras += 75; 
+                resHTML += `<span style="color:#daffde"><strong class="highlight-unit">1 Huevo Entero</strong> + ${formatIngredient(p1, pKcalFinal, true)}</span></p>`;
+            } else {
+                finalKcal.p += pKcalFinal;
+                resHTML += `<span style="color:#daffde">100%: ${formatIngredient(p1, pKcalFinal)}</span></p>`;
+            }
+            
+            if (pKcalFinal < appState.activeMealMacros.p) {
+                resHTML += `<span class="dual-msg">ℹ️ Ración base ajustada por huevo/extras o legumbres.</span>`;
+            }
+            
+            if (fattyExtrasSelected.length > 0) {
+                resHTML += `<span style="color:var(--fatty); font-size:0.85rem; font-weight:bold; display:block; margin-top:5px;">➕ Extras añadidos:</span>`;
+                fattyExtrasSelected.forEach(extId => {
+                    let ext = fattyExtrasDB[extId];
+                    finalKcal.extras += ext.kcal; 
+                    resHTML += `<span style="color:#f5f5f5; font-size:0.85rem; display:block;">- <strong class="highlight-unit">15g</strong> de ${ext.n}</span>`;
+                });
+            }
+        }
+
+        // GRASAS 
+        resHTML += `<p style="margin-top:10px;">🥑 <strong>Grasa:</strong><br>`;
+        if (skipped.grasas) {
+            resHTML += `<span class="skipped-text">Omitido (Kcal repartidas a Hidratos/Proteínas)</span></p>`;
+            if (fatDeductionFromProtein > 0) {
+                 finalKcal.g += fatDeductionFromProtein; 
+            }
+        } else {
+            let gKcalFinal = getFatKcalCalculated();
+            const g1 = dbMatrix.grasas.find(i => i.id === selections.grasas);
+            
+            finalKcal.g += fatDeductionFromProtein;
+            
+            if(isMixChecked.grasas) {
+                const g2 = dbMatrix.grasas.find(i => i.id === selections.grasas2);
+                let halfKcal = gKcalFinal / 2;
+                finalKcal.g += halfKcal * 2;
+                resHTML += `<span style="color:#daffde">50%: ${formatIngredient(g1, halfKcal)}<br>50%: ${formatIngredient(g2, halfKcal)}</span></p>`;
+            } else {
+                finalKcal.g += gKcalFinal;
+                resHTML += `<span style="color:#daffde">100%: ${formatIngredient(g1, gKcalFinal)}</span></p>`;
+            }
+            
+            if (fatDeductionFromProtein > 0) {
+                resHTML += `<span class="fatty-msg">ℹ️ Grasa libre reducida automáticamente para compensar el exceso graso de las proteínas/extras.</span>`;
+            }
+        }
+
+        let totalPlatoKcal = Math.round(finalKcal.h + finalKcal.p + finalKcal.g + finalKcal.extras);
+        
+        document.getElementById('res-cal').textContent = `🔥 TOTAL PLATO REAL: ~${totalPlatoKcal} kcal`;
+        
+        let desgloseHTML = `<div class="kcal-breakdown">
+            <span>🍞 ${Math.round(finalKcal.h)} kcal</span>
+            <span>🥩 ${Math.round(finalKcal.p + finalKcal.extras)} kcal</span>
+            <span>🥑 ${Math.round(finalKcal.g)} kcal</span>
+        </div>`;
+        
+        document.getElementById('res-detail').innerHTML = resHTML + desgloseHTML;
+        
+        // POSTRE
+        const postreContainer = document.getElementById('postre-container');
+        if (currentMeal === 'desayuno') {
+            postreContainer.style.display = 'none';
+        } else {
+            postreContainer.style.display = 'block';
+            let sf = appState.totalKcal / 2500;
+            let postreHTML = `<strong class="highlight-unit">${(1 * sf).toFixed(1)} ud.</strong> Kinder Bueno o <strong class="highlight-unit">${(2 * sf).toFixed(1)} uds.</strong> Galletas Digestive`;
+            document.getElementById('res-postre').innerHTML = postreHTML;
+        }
+
+        nextScreen('screen-result');
+    }
+
+    // EPICOS SIMULADOS
+    function renderEpicos() {
+        let dist = mealDistribution[currentMeal];
+        
+        const H_kcal = appState.totalKcal * (appState.pct.h / 100) * dist;
+        const P_kcal = appState.totalKcal * (appState.pct.p / 100) * dist;
+        const G_kcal = appState.totalKcal * (appState.pct.g / 100) * dist;
+
+        const getEpicIng = (cat, id, pct_macro) => {
+            let item = dbMatrix[cat].find(i => i.id === id);
+            if (!item) return {g: 0, u: 0, n: 'Error', ut: 'Error'};
+            let k = appState.totalKcal * (appState.pct[pct_macro] / 100) * dist;
+            let g = Math.round(item.g_per_100k * (k/100));
+            let u = (item.u_per_100k * (k/100)).toFixed(1).replace('.0', '');
+            return {g, u, n:item.n, ut:item.ut};
+        }
+
+        const fmtE = (e) => `<strong class="highlight-unit">${e.g}g</strong> (~${e.u} ${e.ut})`;
+
+        const e_mc = { h: getEpicIng('hidratos','ph','h'), p: getEpicIng('proteinas','ht','p'), h2: getEpicIng('hidratos','bo','h'), g: getEpicIng('grasas','ma','g') };
+        const e_kf = { h: getEpicIng('hidratos','pt','h'), p: getEpicIng('proteinas','hc','p'), g: getEpicIng('grasas','ma','g') };
+        const e_ch = { h: getEpicIng('hidratos','ar','h'), p: getEpicIng('proteinas','po','p'), g: getEpicIng('grasas','ss','g') };
+        const e_rm = { h: getEpicIng('hidratos','fd','h'), p: getEpicIng('proteinas','ce','p'), g: getEpicIng('grasas','ac','g') };
+        const e_pz = { h: getEpicIng('hidratos','pm','h'), p: getEpicIng('proteinas','yo','p'), g: getEpicIng('grasas','mo','g') }; 
+        const e_fz = { h: getEpicIng('hidratos','tx','h'), p: getEpicIng('proteinas','po','p'), g: getEpicIng('grasas','mo','g') }; 
+        const e_cl = { h: getEpicIng('hidratos','pm','h'), p: getEpicIng('proteinas','po','p'), h2: getEpicIng('hidratos','bo','h'), g: getEpicIng('grasas','ma','g') };
+        const e_tc = { h: getEpicIng('hidratos','tx','h'), p: getEpicIng('proteinas','te','p'), g: getEpicIng('grasas','ag','g') };
+
+        const max_tortilla_H = (H_kcal / 56) * 100;  
+        const max_tortilla_G = (G_kcal / 90) * 100;  
+        const tortilla_g = Math.max(0, Math.round(Math.min(max_tortilla_H, max_tortilla_G)));
+        const tortilla_slices = (tortilla_g / 100).toFixed(1); 
+        const tortilla_P_g = (tortilla_g / 100) * 4.5;
+        const missing_P_g = Math.max(0, (P_kcal / 4) - tortilla_P_g);
+        const pollo_extra_g = Math.round((missing_P_g / 22) * 100); 
+
+        let d_tp = `<strong class="highlight-unit">${tortilla_slices} porciones</strong> de Tortilla de Patatas (aprox. ${tortilla_g}g).`;
+        if(missing_P_g > 3) {
+            d_tp += `<br><span style="color:var(--danger); font-size:0.8rem; display:block; margin-top:5px;">⚠️ Te faltan <strong>${Math.round(missing_P_g)}g de proteína</strong>.</span><span style="color:var(--accent); font-size:0.8rem;">Añade aprox. <strong>${pollo_extra_g}g de pollo</strong>, atún o lomo para cuadrar el plato al 100%.</span>`;
+        } else {
+            d_tp += `<br><span style="color:var(--success); font-size:0.8rem; display:block; margin-top:5px;">✅ Macros de proteína cubiertos.</span>`;
+        }
+
+        const epicMeals = [
+            { id:'tp', n:'🇪🇸 Tortilla de Patatas (Dinámica)', d: d_tp }, 
+            { id:'mc', n:'🍟 Menú McDonalds Fit', d:`${fmtE(e_mc.h)} de Pan Burger, ${fmtE(e_mc.p)} de Burger Ternera, ${fmtE(e_mc.h2)} de Patatas Airfryer con ${fmtE(e_mc.g)} de Mayonesa Light.` },
+            { id:'kf', n:'🍗 Estilo KFC', d:`${fmtE(e_kf.p)} de Tiras Pollo "KFC", ${fmtE(e_kf.h)} de Patatas Asadas, ${fmtE(e_kf.g)} de Salsa Mostaza/Mayo Light.` },
+            { id:'tc', n:'🌮 Tacos Carnívoros', d:`${fmtE(e_tc.h)} de maíz/trigo, ${fmtE(e_tc.p)} de Ternera Picada, ${fmtE(e_tc.g)} de Guacamole/Aguacate y pico de gallo libre.` },
+            { id:'ch', n:'🥡 Arroz Chino', d:`${fmtE(e_ch.h)} de Arroz en seco salteado con ${fmtE(e_ch.p)} de Pollo, verduras y ${fmtE(e_ch.g)} de Salsa de Soja.` },
+            { id:'rm', n:'🍜 Ramen Japo', d:`${fmtE(e_rm.h)} de Nidos Fideos, ${fmtE(e_rm.p)} de Lomo Cerdo, 1 Huevo plancha, ${fmtE(e_rm.g)} de Aceite Sésamo.` },
+            { id:'pz', n:'🍕 Pizza Queso Fundido', d:`Base de masa fina o ${fmtE(e_pz.h)} molde, tomate natural, ${fmtE(e_pz.g)} de Mozzarella Rallada, ${fmtE(e_pz.p)} de Pavo/York.` },
+            { id:'fz', n:'🍕 Fitzza Mexicana', d:`${fmtE(e_fz.h)} de base, tomate tamizado, ${fmtE(e_fz.p)} de Pollo en tiras, ${fmtE(e_fz.g)} de Queso Mozzarella Rallado.` },
+            { id:'cl', n:'🥪 Sándwich Club + Patatas', d:`${fmtE(e_cl.h)} molde, ${fmtE(e_cl.p)} de Pollo braseado, ${fmtE(e_cl.h2)} de Patatas Airfryer, ${fmtE(e_cl.g)} de Mayonesa Light.` }
+        ];
+
+        const list = document.getElementById('epicos-list');
+        list.innerHTML = '';
+
+        epicMeals.forEach(meal => {
+            const card = document.createElement('div');
+            card.className = 'option-card';
+            card.innerHTML = `<strong>${meal.n}</strong><br><span style="font-size:0.85rem; color:#94a3b8;">${meal.d}</span>`;
+            
+            card.onclick = () => {
+                let totalPlatoKcal = Math.round(appState.originalMealMacros.p + appState.originalMealMacros.h + appState.originalMealMacros.g); 
+                document.getElementById('res-cal').textContent = `🔥 TOTAL ÉPICO: ~${totalPlatoKcal} kcal`;
+                document.getElementById('res-detail').innerHTML = `<p style="font-size:1.1rem; color:var(--accent); font-weight:bold;">${meal.n}</p><p style="color:#daffde; font-size:0.9rem; margin-top:10px; line-height: 1.6;">${meal.d}</p>`;
+                
+                const postreContainer = document.getElementById('postre-container');
+                if (currentMeal === 'desayuno') {
+                    postreContainer.style.display = 'none';
+                } else {
+                    postreContainer.style.display = 'block';
+                    let sf = appState.totalKcal / 2500;
+                    let postreHTML = `<strong class="highlight-unit">${(1 * sf).toFixed(1)} ud.</strong> Kinder Bueno o <strong class="highlight-unit">${(2 * sf).toFixed(1)} uds.</strong> Galletas Digestive`;
+                    document.getElementById('res-postre').innerHTML = postreHTML;
+                }
+
+                nextScreen('screen-result');
+            };
+            list.appendChild(card);
+        });
+        nextScreen('screen-epicos');
+    }
+
+    function resetApp() {
+        selections = { hidratos: '', proteinas: '', grasas: '', hidratos2: '', proteinas2: '', grasas2: '' };
+        isMixChecked = { hidratos: false, proteinas: false, grasas: false };
+        skipped = { hidratos: false, proteinas: false, grasas: false };
+        fattyExtrasSelected = [];
+        
+        document.getElementById('mix-hidratos').checked = false;
+        document.getElementById('mix-proteinas').checked = false;
+        document.getElementById('mix-grasas').checked = false;
+        document.getElementById('add-egg').checked = false;
+        document.getElementById('ext-pep').checked = false;
+        document.getElementById('ext-sal').checked = false;
+        document.getElementById('ext-pam').checked = false;
+        
+        document.getElementById('fatty-list').style.display = 'none';
+        document.getElementById('fatty-icon').textContent = '▼';
+        
+        resetActiveMacros();
+        nextScreen('screen-welcome');
+    }
+</script>
+</body>
+</html>
+"""
+}
+}
