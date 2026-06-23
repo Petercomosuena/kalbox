@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KcalBox Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #0e0e10;
+    --ink-2: #3a3a44;
+    --ink-3: #8a8a97;
+    --surface: #f7f7f5;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --lime: #c8f04e;
+    --lime-dark: #8ab820;
+    --lime-pale: #f0facc;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 100%;
+    max-width: 430px;
+    background: var(--surface);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: var(--ink);
+    padding: 16px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--lime);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .version-tag {
+    font-size: 0.65rem;
+    color: #555;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid #222;
+  }
+  .tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #555;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 10px 6px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn.active {
+    color: var(--lime);
+    border-bottom-color: var(--lime);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: flex; flex-direction: column; flex: 1; }
+  .content { flex: 1; padding: 20px; overflow-y: auto; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: up 0.22s ease; }
+  @keyframes up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* GREETING */
+  .greeting-block { margin-bottom: 20px; }
+  .greeting-hi {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .greeting-hi span { color: var(--lime-dark); }
+  .greeting-sub {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    margin-top: 4px;
+  }
+
+  .section-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 14px;
+  }
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .field-label.accent { color: var(--lime-dark); }
+  input[type="number"], input[type="text"], input[type="date"] {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 1rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 12px;
+  }
+  input[type="number"] { text-align: center; font-family: 'Space Grotesk', sans-serif; }
+  input:focus { border-color: var(--lime-dark); }
+  .kcal-input input {
+    font-size: 1.7rem;
+    font-weight: 700;
+    border-color: var(--lime-dark);
+    color: var(--ink);
+    background: var(--lime-pale);
+  }
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 6px 0 14px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+  }
+  .macro-lock {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--ink);
+    color: var(--lime);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+  }
+  .macro-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .macro-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .macro-pill .mp-label { font-size: 0.7rem; color: var(--ink-3); margin-bottom: 4px; }
+  .macro-pill .mp-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--lime-dark);
+  }
+  .meals-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .meal-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 10px;
+  }
+  .meal-tile .mt-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .meal-tile .mt-kcal { font-size: 0.78rem; color: var(--ink-2); font-weight: 500; margin-bottom: 3px; }
+  .meal-tile .mt-mac { font-size: 0.68rem; color: var(--ink-3); line-height: 1.5; }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: transform 0.1s, opacity 0.15s;
+    text-align: center;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--lime); color: var(--ink); }
+  .btn-secondary { background: var(--card); border: 1px solid var(--border-strong); color: var(--ink-2); }
+  .btn-amber { background: var(--amber); color: #fff; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--border-strong); color: var(--ink-2); }
+  .btn-danger { background: transparent; border: 1.5px solid #fca5a5; color: var(--red); }
+  .btn-dark { background: #1a1a2e; color: #aaa; border: none; }
+  .btn-sm { padding: 9px 14px; font-size: 0.8rem; margin-bottom: 0; border-radius: var(--radius-sm); }
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--ink);
+    border-left: 3px solid var(--lime);
+    padding-left: 10px;
+  }
+  .option-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .option-card:hover { border-color: var(--lime-dark); }
+  .option-card.selected { border-color: var(--lime-dark); background: var(--lime-pale); }
+  .mix-primary-card {
+    background: var(--ink);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 18px;
+  }
+  .mix-primary-card .mpc-label { font-size: 0.7rem; color: #777; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .mix-primary-card .mpc-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--lime);
+  }
+  .mix-ratio-row { display: none; } /* legacy, unused */
+  .remaining-bar-wrap { margin-bottom: 10px; }
+  .remaining-bar-label { display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:4px; }
+  .remaining-bar-label span:first-child { color: var(--ink-2); font-weight:500; }
+  .remaining-bar-label span:last-child { font-family:'Space Grotesk',sans-serif; font-weight:700; color: var(--ink); }
+  .remaining-bar-track { height:8px; background:var(--surface); border-radius:20px; overflow:hidden; border:1px solid var(--border); }
+  .remaining-bar-fill { height:100%; border-radius:20px; transition: width 0.4s ease; }
+  .log-entry-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .log-entry-row:last-child { border-bottom: none; }
+  .ler-meal { font-weight:600; color: var(--ink); }
+  .ler-meta { font-size:0.72rem; color: var(--ink-3); margin-top:2px; }
+  .ler-kcal { font-family:'Space Grotesk',sans-serif; font-weight:700; color:var(--lime-dark); white-space:nowrap; margin-left:10px; }
+  .ler-del { background:none; border:none; color:#fca5a5; cursor:pointer; font-size:0.9rem; padding:2px 6px; }
+  .result-item-wrap:last-child { border-bottom: none; }
+  .result-item { border-bottom: none; padding-bottom: 2px; }
+  .ri-grams.adjusted { color: var(--lime-dark); }
+  input[type=range].gram-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--lime-dark) 0%, var(--border-strong) 0%);
+    outline: none;
+    border: none;
+    margin-bottom: 0;
+    padding: 0;
+  }
+  input[type=range].gram-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--lime-dark);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  input[type=range].gram-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--lime-dark);
+    cursor: pointer;
+    border: none;
+  }
+  .ri-name { font-size: 0.88rem; color: var(--ink-2); }
+  .ri-unit { font-size: 0.75rem; color: var(--ink-3); margin-top: 2px; }
+  .ri-grams {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    margin-left: 12px;
+  }
+  .macro-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 12px; }
+  .macro-table th {
+    text-align: left;
+    font-size: 0.68rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 6px 8px;
+    font-weight: 600;
+  }
+  .macro-table td { padding: 8px 8px; border-top: 1px solid var(--border); }
+  .macro-table tr td:first-child { font-weight: 500; }
+  .diff-ok { color: var(--green); font-weight: 600; }
+  .diff-pos { color: var(--red); font-weight: 600; }
+  .diff-neg { color: var(--amber); font-weight: 600; }
+  .suggestion-block {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.83rem;
+    line-height: 1.5;
+    border-left: 3px solid var(--lime-dark);
+    background: var(--lime-pale);
+    color: var(--ink-2);
+  }
+  .suggestion-block.ok { border-left-color: var(--green); background: #f0fdf4; color: #166534; }
+  .suggestion-block + .suggestion-block { margin-top: 8px; }
+  .egg-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+  .egg-option input { width: 16px; height: 16px; accent-color: var(--lime-dark); cursor: pointer; }
+  .egg-option label { font-size: 0.88rem; font-weight: 500; cursor: pointer; }
+
+  /* PROFILE TAB */
+  .avatar-circle {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--lime);
+    margin: 0 auto 14px;
+  }
+  .goal-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: var(--lime-pale);
+    color: var(--lime-dark);
+    border: 1px solid #b8e040;
+    margin-bottom: 16px;
+  }
+  .weight-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin-bottom: 12px;
+  }
+  .weight-row input[type="number"] { flex: 1; margin-bottom: 0; font-size: 0.95rem; }
+  .weight-row input[type="date"] { flex: 1.2; margin-bottom: 0; font-size: 0.85rem; padding: 11px 10px; }
+  .weight-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .weight-log-item:last-child { border-bottom: none; }
+  .wli-date { color: var(--ink-3); font-size: 0.78rem; }
+  .wli-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .wli-del {
+    background: none;
+    border: none;
+    color: #fca5a5;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+  }
+  .chart-wrap { position: relative; height: 180px; margin-top: 10px; }
+  .no-data { text-align: center; color: var(--ink-3); font-size: 0.85rem; padding: 30px 0; }
+
+  /* SAVED MENUS */
+  .saved-menu-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .saved-menu-card:hover { border-color: var(--lime-dark); }
+  .saved-menu-card .smc-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .saved-menu-card .smc-meta {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+  .saved-menu-card .smc-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .saved-menu-card .smc-badge {
+    background: var(--surface);
+    color: var(--ink-2);
+    font-size: 0.68rem;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-box {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 22px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .modal-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .btn-ghost.active-sex {
+    background: var(--ink);
+    color: var(--lime);
+    border-color: var(--ink);
+  }
+  .goal-kcal-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .goal-kcal-card:hover { border-color: var(--lime-dark); }
+  .goal-kcal-card.recommended { border-color: var(--lime-dark); background: var(--lime-pale); }
+  .goal-kcal-card .gkc-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--lime-dark);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .goal-kcal-card .gkc-label { font-size: 0.68rem; color: var(--ink-3); }
+
+  /* GOAL PROGRESS / GAMIFICATION */
+  .goal-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .goal-headline .accent-num { color: var(--lime-dark); }
+  .goal-subline {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    margin-bottom: 16px;
+  }
+  .progress-track {
+    width: 100%;
+    height: 14px;
+    background: var(--surface);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lime-dark), var(--lime));
+    border-radius: 20px;
+    transition: width 0.5s ease;
+  }
+  .progress-endpoints {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+  .milestone-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .milestone-box {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .milestone-box .ms-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+  .milestone-box .ms-label {
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+  .goal-reached-badge {
+    background: var(--ink);
+    color: var(--lime);
+    text-align: center;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div class="header-top">
+      <div class="logo">KcalBox Pro</div>
+      <div class="version-tag">Come bajo tus reglas</div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('tab-main')">Inicio</button>
+      <button class="tab-btn" onclick="switchTab('tab-profile')">Mi Perfil</button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN TAB ===== -->
+  <div id="tab-main" class="tab-panel active">
+    <div class="content">
+
+      <!-- WELCOME -->
+      <div id="screen-welcome" class="screen active">
+        <div class="greeting-block">
+          <div class="greeting-hi" id="greeting-text">¡Hola!</div>
+          <div class="greeting-sub" id="greeting-sub">¿Qué comemos hoy?</div>
+        </div>
+
+        <button class="btn btn-ghost" onclick="renderSavedMenus(); goToScreen('screen-saved-menus')" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:14px;">
+          <span>📋</span><span id="saved-menus-entry-label">Mis Menús</span>
+        </button>
+
+        <div class="card">
+          <div class="card-title">Energía diaria</div>
+          <div class="field-label">Peso actual (kg)</div>
+          <input type="number" id="weight" placeholder="75">
+          <div class="field-label accent">Calorías objetivo diarias</div>
+          <div class="kcal-input">
+            <input type="number" id="total-calories" value="2400" step="50" oninput="updateDashboard()">
+          </div>
+          <button class="btn btn-dark" onclick="saveProfile()" style="margin-top:4px;">Guardar perfil</button>
+        </div>
+
+        <div class="card">
+          <div class="macro-lock">
+            <span>🔒</span>
+            <span>Macros base bloqueados — 100%</span>
+          </div>
+          <div class="macro-grid">
+            <div class="macro-pill"><div class="mp-label">Proteína</div><div class="mp-val" id="dash-p">200g</div></div>
+            <div class="macro-pill"><div class="mp-label">Hidratos</div><div class="mp-val" id="dash-h">220g</div></div>
+            <div class="macro-pill"><div class="mp-label">Grasas</div><div class="mp-val" id="dash-g">80g</div></div>
+          </div>
+          <div class="section-label">Comidas escaladas</div>
+          <div class="meals-grid">
+            <div class="meal-tile"><div class="mt-name">Desayuno</div><div class="mt-kcal" id="m-kcal-desayuno">600 kcal</div><div class="mt-mac" id="m-mac-desayuno">P 45g · H 60g · G 20g</div></div>
+            <div class="meal-tile"><div class="mt-name">Comida</div><div class="mt-kcal" id="m-kcal-comida">700 kcal</div><div class="mt-mac" id="m-mac-comida">P 50g · H 70g · G 25g</div></div>
+            <div class="meal-tile"><div class="mt-name">Snack</div><div class="mt-kcal" id="m-kcal-snack">350 kcal</div><div class="mt-mac" id="m-mac-snack">P 45g · H 25g · G 10g</div></div>
+            <div class="meal-tile"><div class="mt-name">Cena</div><div class="mt-kcal" id="m-kcal-cena">750 kcal</div><div class="mt-mac" id="m-mac-cena">P 60g · H 65g · G 25g</div></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="goToScreen('screen-meal')">Empezar a cocinar →</button>
+
+        <!-- DIARIO DEL DÍA -->
+        <div class="card" id="daily-log-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div class="card-title" style="margin-bottom:0;">Diario de hoy</div>
+            <button onclick="confirmResetDay()" style="background:none;border:none;font-size:0.72rem;color:var(--ink-3);cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--border);">Reiniciar día</button>
+          </div>
+          <div id="daily-log-empty" class="no-data" style="padding:16px 0;">Aún no has registrado ninguna comida hoy.</div>
+          <div id="daily-log-entries" style="display:none;"></div>
+          <div id="daily-log-totals" style="display:none;">
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+                <span style="font-size:0.78rem;font-weight:600;color:var(--ink-2);">Total consumido</span>
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--lime-dark);" id="daily-kcal-done">0 kcal</span>
+              </div>
+              <div class="macro-grid" style="margin-bottom:14px;">
+                <div class="macro-pill"><div class="mp-label">Proteína</div><div class="mp-val" id="daily-p-done" style="font-size:0.95rem;">0g</div></div>
+                <div class="macro-pill"><div class="mp-label">Hidratos</div><div class="mp-val" id="daily-h-done" style="font-size:0.95rem;">0g</div></div>
+                <div class="macro-pill"><div class="mp-label">Grasas</div><div class="mp-val" id="daily-g-done" style="font-size:0.95rem;">0g</div></div>
+              </div>
+              <div style="font-size:0.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Te queda por consumir</div>
+              <div id="daily-remaining-bars"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEAL SELECT -->
+      <div id="screen-meal" class="screen">
+        <h2>Selecciona el momento</h2>
+        <button class="btn btn-primary" onclick="startMealFlow('desayuno')">Desayuno</button>
+        <button class="btn btn-primary" onclick="startMealFlow('comida')">Comida</button>
+        <button class="btn btn-primary" onclick="startMealFlow('snack')">Snack</button>
+        <button class="btn btn-primary" onclick="startMealFlow('cena')">Cena</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-welcome')">Atrás</button>
+      </div>
+
+      <!-- MODE -->
+      <div id="screen-mode" class="screen">
+        <h2>Modo de preparación</h2>
+        <button class="btn btn-primary" onclick="startModularFlow()">Diseñar paso a paso</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-meal')">Atrás</button>
+      </div>
+
+      <!-- MACRO LIST -->
+      <div id="screen-macro-list" class="screen">
+        <h2 id="macro-title">Paso: Elegir</h2>
+        <div id="egg-option-container" style="display:none;">
+          <div class="egg-option">
+            <input type="checkbox" id="add-egg-check">
+            <label for="add-egg-check">Añadir 1 huevo entero a la comida</label>
+          </div>
+        </div>
+        <div id="macro-cards-container"></div>
+        <button class="btn btn-danger" onclick="handleSkipMacro()" style="margin-top:12px;">Prescindir de este macro</button>
+        <button class="btn btn-secondary" id="macro-list-back-btn" onclick="goToPreviousStep()">Atrás</button>
+      </div>
+
+      <!-- MIX -->
+      <div id="screen-macro-mix" class="screen">
+        <h2>¿Lo combinamos?</h2>
+        <div class="mix-primary-card">
+          <div class="mpc-label">Has elegido</div>
+          <div class="mpc-name" id="mix-primary-name"></div>
+        </div>
+        <div id="low-fat-warning" class="suggestion-block" style="display:none; margin-top:-6px; margin-bottom:16px;"></div>
+        <button class="btn btn-primary" onclick="handleMixSelection('none')">Solo esto — sin combinar</button>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-title">Combinar con</div>
+          <select id="mix-secondary-select" onchange="updateMixButtonLabels()"></select>
+          <p style="font-size:0.78rem; color:var(--ink-3); margin:-6px 0 12px;">¿Cómo quieres repartir el plato?</p>
+          <button class="btn btn-ghost" id="mix-btn-primary-more" onclick="handleMixSelection('8020')" style="margin-bottom:8px;">Más de esto</button>
+          <button class="btn btn-ghost" onclick="handleMixSelection('5050')" style="margin-bottom:8px;">Igual de los dos</button>
+          <button class="btn btn-ghost" id="mix-btn-secondary-more" onclick="handleMixSelection('2080')">Más de aquello</button>
+        </div>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-macro-list')">Atrás</button>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="screen-result" class="screen">
+        <h2>Resultados del plato</h2>
+        <div class="card" id="result-plate-items"></div>
+        <div class="card" style="margin-top:4px;">
+          <div class="card-title">Análisis de macros</div>
+          <div id="result-kcal-summary" style="display:flex; flex-direction:column; align-items:center; background:var(--lime-pale); border-radius:var(--radius-sm); padding:12px; margin-bottom:14px; gap:4px;">
+            <div style="display:flex; align-items:baseline; gap:6px;">
+              <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.4rem; color:var(--lime-dark);" id="result-kcal-value">0</span>
+              <span style="font-size:0.78rem; color:var(--ink-2); font-weight:600;">kcal del plato</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--ink-3);">Recomendado para este momento: <strong id="result-kcal-target" style="color:var(--ink-2);">—</strong></div>
+          </div>
+          <table class="macro-table">
+            <thead><tr><th>Macro</th><th>Objetivo</th><th>Real</th><th>Dif.</th></tr></thead>
+            <tbody id="result-table-body"></tbody>
+          </table>
+        </div>
+        <div id="result-suggestions"></div>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="registerInDiary()">📅 Registrar en el diario de hoy</button>
+        <button class="btn btn-ghost" onclick="openSaveMenuPrompt()">💾 Guardar este plato</button>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-welcome')">Diseñar otro plato</button>
+        <button class="btn btn-secondary" onclick="goBackToLastStep()">← Atrás — modificar plato</button>
+      </div>
+
+      <!-- SAVED MENUS -->
+      <div id="screen-saved-menus" class="screen">
+        <h2 id="saved-menus-title">Mis Menús</h2>
+        <div id="saved-menus-list"></div>
+        <button class="btn btn-secondary" onclick="goToScreen('screen-welcome')">Atrás</button>
+      </div>
+
+      <!-- SAVED MENU DETAIL -->
+      <div id="screen-menu-detail" class="screen">
+        <h2 id="menu-detail-title">Plato guardado</h2>
+        <div class="card" id="menu-detail-items"></div>
+        <div class="card" style="margin-top:4px;">
+          <div class="card-title">Análisis de macros</div>
+          <div style="display:flex; align-items:baseline; justify-content:center; gap:6px; background:var(--lime-pale); border-radius:var(--radius-sm); padding:10px; margin-bottom:14px;">
+            <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.4rem; color:var(--lime-dark);" id="menu-detail-kcal">0</span>
+            <span style="font-size:0.78rem; color:var(--ink-2); font-weight:600;">kcal aprox. del plato</span>
+          </div>
+          <table class="macro-table">
+            <thead><tr><th>Macro</th><th>Cantidad</th></tr></thead>
+            <tbody id="menu-detail-table-body"></tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary" onclick="registerSavedMenuInDiary()">📅 Registrar en el diario de hoy</button>
+        <button class="btn btn-ghost" onclick="openRenameMenuPrompt()">✏️ Renombrar</button>
+        <button class="btn btn-danger" onclick="confirmDeleteMenu()">🗑️ Eliminar este menú</button>
+        <button class="btn btn-secondary" onclick="renderSavedMenus(); goToScreen('screen-saved-menus')">Atrás</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== PROFILE TAB ===== -->
+  <div id="tab-profile" class="tab-panel">
+    <div class="content">
+
+      <div class="card" style="text-align:center;">
+        <div class="avatar-circle" id="profile-avatar">?</div>
+        <div id="profile-goal-badge" class="goal-badge" style="display:none;"></div>
+        <div class="card-title" style="margin-bottom:0;">Tu perfil</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Datos personales</div>
+        <div class="field-label">Nombre</div>
+        <input type="text" id="profile-name" placeholder="Tu nombre" oninput="updateProfilePreview()">
+        <div class="field-label">Objetivo</div>
+        <select id="profile-goal" onchange="updateProfilePreview(); calcMifflin();">
+          <option value="">Selecciona un objetivo</option>
+          <option value="Definición muscular">Definición muscular</option>
+          <option value="Volumen / Ganancia de masa">Volumen / Ganancia de masa</option>
+          <option value="Mantenimiento">Mantenimiento</option>
+          <option value="Pérdida de grasa">Pérdida de grasa</option>
+          <option value="Rendimiento deportivo">Rendimiento deportivo</option>
+          <option value="Salud general">Salud general</option>
+        </select>
+        <div class="field-label">Peso objetivo (kg) — opcional</div>
+        <input type="number" id="profile-target-weight" placeholder="Ej: 78" step="0.1">
+        <button class="btn btn-primary" onclick="saveProfileFull()">Guardar perfil</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Calculadora calórica — Mifflin-St Jeor</div>
+        <p style="font-size:0.78rem;color:var(--ink-3);margin-bottom:14px;line-height:1.5;">La ecuación más validada científicamente para estimar tus necesidades calóricas reales. Introduce tus datos y te sugerimos las kcal diarias óptimas.</p>
+
+        <div class="field-label">Sexo biológico</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="sex-male-btn" class="btn btn-ghost" style="flex:1;margin-bottom:0;padding:10px;" onclick="selectSex('M')">Hombre</button>
+          <button id="sex-female-btn" class="btn btn-ghost" style="flex:1;margin-bottom:0;padding:10px;" onclick="selectSex('F')">Mujer</button>
+        </div>
+        <input type="hidden" id="profile-sex" value="">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div>
+            <div class="field-label">Peso (kg)</div>
+            <input type="number" id="mst-weight" placeholder="75" step="0.5" oninput="calcMifflin()">
+          </div>
+          <div>
+            <div class="field-label">Altura (cm)</div>
+            <input type="number" id="mst-height" placeholder="178" oninput="calcMifflin()">
+          </div>
+        </div>
+        <div class="field-label">Edad (años)</div>
+        <input type="number" id="mst-age" placeholder="30" oninput="calcMifflin()" style="margin-bottom:16px;">
+
+        <div class="field-label" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Nivel de actividad</span>
+          <span id="activity-label" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--lime-dark);font-size:0.9rem;">5 — Moderado</span>
+        </div>
+        <input type="range" id="activity-slider" min="1" max="10" value="5" step="1"
+          oninput="updateActivityLabel(); calcMifflin();"
+          style="width:100%;accent-color:var(--lime-dark);margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--ink-3);margin-bottom:16px;">
+          <span>1 · Sedentario</span>
+          <span>5 · Moderado</span>
+          <span>10 · Élite</span>
+        </div>
+
+        <div id="mifflin-result" style="display:none;">
+          <!-- GET base -->
+          <div style="background:var(--ink);border-radius:var(--radius-sm);padding:14px;text-align:center;margin-bottom:10px;">
+            <div style="font-size:0.7rem;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Tu gasto calórico diario (GET)</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:2rem;color:var(--lime);" id="mifflin-kcal">—</div>
+            <div style="font-size:0.72rem;color:#555;margin-top:2px;">TMB: <span id="mifflin-tmb">—</span> kcal · Factor: ×<span id="mifflin-factor">—</span></div>
+          </div>
+          <div id="mifflin-breakdown" style="font-size:0.78rem;color:var(--ink-3);line-height:1.8;background:var(--surface);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;"></div>
+
+          <!-- Sugerencia según objetivo -->
+          <div id="goal-kcal-suggestion" style="display:none;">
+            <div style="font-size:0.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Objetivo: <span id="goal-kcal-label" style="color:var(--lime-dark);"></span></div>
+            <div id="goal-kcal-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;"></div>
+            <div id="goal-kcal-rationale" style="font-size:0.78rem;color:var(--ink-3);line-height:1.6;background:var(--lime-pale);border-left:3px solid var(--lime-dark);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px;margin-bottom:14px;"></div>
+          </div>
+
+          <button class="btn btn-primary" id="apply-mifflin-btn" onclick="applyMifflinToCalories()">Aplicar GET como objetivo calórico</button>
+        </div>
+
+      </div>
+
+      <div class="card" id="goal-progress-card" style="display:none;">
+        <div class="card-title">Progreso hacia tu objetivo</div>
+        <div id="goal-progress-content"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Registro de peso</div>
+        <div class="weight-row">
+          <input type="number" id="weight-entry" placeholder="kg" step="0.1">
+          <input type="date" id="weight-date">
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="addWeightEntry()" style="margin-bottom:14px;">+ Añadir registro</button>
+        <div id="weight-log-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Progreso de peso</div>
+        <div id="chart-placeholder" class="no-data">Añade al menos 2 registros para ver el gráfico.</div>
+        <div class="chart-wrap" id="chart-wrap" style="display:none;">
+          <canvas id="weight-chart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TOAST ──────────────────────────────────────────────────────────
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#0e0e10;color:#c8f04e;padding:12px 20px;border-radius:10px;z-index:9999;font-size:0.85rem;font-weight:600;font-family:Space Grotesk,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,0.25);min-width:260px;text-align:center;';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(()=>el.remove(),300); }, 2200);
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(tabId==='tab-profile') { renderWeightLog(); loadMifflinFields(); }
+}
+
+// ── FOOD DATABASE ─────────────────────────────────────────────────
+const foodDB = {
+  h: [
+    {id:'av',  n:'Avena en copos',          m:{p:13, h:60,  g:7},   u:10,  ut:'cdas colmadas'},
+    {id:'ar',  n:'Arroz en seco',            m:{p:7,  h:78,  g:1},   u:1.2, ut:'taza(s) café'},
+    {id:'pt',  n:'Patata cocida/asada',      m:{p:2,  h:17,  g:0.1}, u:0.7, ut:'ud(s) med'},
+    {id:'bo',  n:'Patatas Airfryer',         m:{p:3,  h:20,  g:4},   u:0.5, ut:'ración(es) ~200g'},
+    {id:'tx',  n:'Tortillas trigo/maíz',     m:{p:8,  h:53,  g:7.4}, u:2.5, ut:'ud(s) de 40g'},
+    {id:'bi',  n:'Tortas Biocentury',        m:{p:7.6, h:80, g:2.6}, u:10,  ut:'ud(s)'},
+    {id:'pa',  n:'Pasta seca',               m:{p:12, h:70,  g:1.5}, u:1.2, ut:'taza(s) café'},
+    {id:'ud',  n:'Fideos Udon',              m:{p:4,  h:32,  g:0.8}, u:0.5, ut:'paquete(s) 200g'},
+    {id:'len', n:'Lentejas (bote)',          m:{p:9,  h:20,  g:0.4}, u:5,   ut:'cdas soperas'},
+    {id:'gar', n:'Garbanzos (bote)',         m:{p:7.5,h:18,  g:2.5}, u:5,   ut:'cdas soperas'},
+    {id:'hab', n:'Alubias (bote)',           m:{p:8,  h:16,  g:0.5}, u:5,   ut:'cdas soperas'},
+    {id:'pm',  n:'Pan molde blanco',         m:{p:8.1, h:48, g:1.3}, u:3.5, ut:'rebanada(s)'},
+    {id:'pi',  n:'Pan integral sin corteza', m:{p:10,  h:39, g:4.9}, u:3.5, ut:'rebanada(s) ~28g'},
+    {id:'ph',  n:'Pan de hamburguesa',       m:{p:10,  h:45,  g:4.6}, u:2,   ut:'unidad(es) ~50g'},
+    {id:'pb',  n:'Pan brioche patata (Juanito)', m:{p:9.0, h:49, g:4.8}, u:1.33, ut:'unidad(es) ~75g'},
+    {id:'soja',n:'Soja texturizada',         m:{p:50, h:30,  g:2},   u:3,   ut:'puñado(s)'},
+    {id:'mz',  n:'Maíz dulce (bote/congelado)',m:{p:2.5,h:14,  g:1.4}, u:5,   ut:'cdas soperas'},
+    {id:'cf',  n:'Corn Flakes',              m:{p:7,  h:84,  g:0.9}, u:3.3, ut:'taza(s) ~30g'},
+    {id:'var', n:'Vasitos de arroz (Brillante)', m:{p:2.7,h:31,  g:2.3}, u:0.8, ut:'vasito(s) 125g'},
+    {id:'ddl', n:'Dulce de leche',           m:{p:7,  h:57,  g:6},   u:10,  ut:'cdita(s) ~10g'},
+    {id:'cal', n:'Calabaza asada',           m:{p:1,  h:9,   g:0.1}, u:2.5, ut:'taza(s)'},
+    {id:'gui', n:'Guisantes (bote/congelado)',m:{p:5, h:14,  g:0.4}, u:5,   ut:'cdas soperas'},
+    {id:'pal', n:'Pasta de legumbres',       m:{p:22, h:58,  g:3},   u:1.2, ut:'taza(s) café'},
+  ],
+  p: [
+    {id:'po',  n:'Pechuga pollo/pavo',       m:{p:23, h:0,   g:1.5}, u:0.5, ut:'pechuga(s)'},
+    {id:'tip', n:'Tiras de pollo',           m:{p:23.4,h:0.6, g:1.2}, u:1,   ut:'ración(es)'},
+    {id:'te',  n:'Ternera picada magra',     m:{p:20, h:0,   g:5},   u:0.25,ut:'bandeja(s)'},
+    {id:'bm',  n:'Ternera picada (Burger Meat)', m:{p:17, h:0.9, g:12}, u:0.25,ut:'bandeja(s)'},
+    {id:'ce',  n:'Lomo cerdo',               m:{p:22, h:0,   g:3},   u:1.5, ut:'filete(s)'},
+    {id:'lo',  n:'Lomo embuchado',           m:{p:32, h:0,   g:8},   u:10,  ut:'lonchas'},
+    {id:'se',  n:'Jamón serrano',            m:{p:28, h:0,   g:12},  u:5,   ut:'lonchas'},
+    {id:'yo',  n:'York/pavo fiambre',        m:{p:18, h:2,   g:3},   u:6,   ut:'lonchas gordas'},
+    {id:'at',  n:'Atún claro al natural (Hacendado)', m:{p:23, h:0, g:0.9}, u:1.5, ut:'lata(s)'},
+    {id:'bac', n:'Bacalao fresco',           m:{p:18, h:0,   g:0.6}, u:0.5, ut:'lomo(s)'},
+    {id:'sf',  n:'Salmón fresco',            m:{p:20, h:0,   g:13},  u:0.5, ut:'lomo(s)'},
+    {id:'ygl', n:'Yogur griego light',       m:{p:5.8, h:4.7, g:2.0}, u:0.8, ut:'tarrina(s)'},
+    {id:'yl',  n:'Yogur natural entero',     m:{p:3.5,h:4.5, g:3.3}, u:0.8, ut:'tarrina(s)'},
+    {id:'cas', n:'Caseína / proteína polvo', m:{p:80, h:3,   g:2},   u:3.3, ut:'cacito(s)'},
+    {id:'lp',  n:'Leche de proteínas',       m:{p:6,  h:4.6, g:0.2}, u:0.4, ut:'vaso(s) 250ml'},
+    {id:'sei', n:'Seitán',                   m:{p:24, h:4,   g:1.5}, u:0.4, ut:'bloque(s)'},
+    {id:'tf',  n:'Tofu firme',               m:{p:15, h:2,   g:8},   u:0.4, ut:'bloque(s)'},
+    {id:'cla', n:'Claras de huevo',          m:{p:11, h:0.5, g:0},   u:3,   ut:'claras (líquidas)'},
+    {id:'tmp', n:'Tempeh',                   m:{p:19, h:9,   g:11},  u:0.4, ut:'bloque(s)'},
+    {id:'con', n:'Conejo',                   m:{p:21, h:0,   g:5},   u:1,   ut:'ración(es)'},
+    {id:'pul', n:'Pulpo cocido',             m:{p:18, h:0,   g:1},   u:1,   ut:'ración(es)'},
+    {id:'cal2',n:'Calamar',                  m:{p:16, h:3,   g:1.5}, u:1,   ut:'ración(es)'},
+    // Nota: pesar SIEMPRE la carne limpia, sin cáscara
+    // Nota: macros calculados sobre peso BRUTO con cáscara (tal y como
+    // se compra/pesa) usando el rendimiento medio de carne limpia.
+    {id:'alm', n:'Almejas (con cáscara, tal cual se compran)',  m:{p:5.2, h:1.2, g:0.4}, u:1,   ut:'ración(es)'},
+    {id:'mej', n:'Mejillones (con cáscara, tal cual se compran)',m:{p:4,  h:1,   g:0.7}, u:1,   ut:'ración(es)'},
+  ],
+  g: [
+    {id:'ag',  n:'Aguacate',                 m:{p:2,  h:9,   g:15},  u:0.6, ut:'aguacate(s) mediano ~167g'},
+    {id:'ac',  n:'Aceite de oliva',          m:{p:0,  h:0,   g:100}, u:10,  ut:'cda(s) soperas'},
+    {id:'mo',  n:'Queso mozzarella',         m:{p:22, h:1.0, g:21},  u:0.5, ut:'bolsa(s)'},
+    {id:'ql',  n:'Queso light',              m:{p:27, h:2.2, g:15},  u:5,   ut:'loncha(s)'},
+    {id:'ma',  n:'Mayonesa light',           m:{p:0.7, h:6.5, g:31},  u:6,   ut:'cda(s)'},
+    {id:'ca',  n:'Crema de cacahuete',       m:{p:30, h:7.0,  g:50},  u:10,  ut:'cdita(s) ~10g'},
+    {id:'gaz', n:'Gazpacho (Hacendado)',      m:{p:0.8, h:3.6, g:2.4}, u:0.4, ut:'vaso(s) grande(s)'},
+    {id:'sm',  n:'Salmorejo fresco (Hacendado)', m:{p:1.5, h:9.5, g:10}, u:0.4, ut:'cuenco(s)'},
+    {id:'mntl',n:'Mantequilla light',        m:{p:0.5,h:0.5, g:40},  u:8,   ut:'cdita(s)'},
+    {id:'mnt', n:'Mantequilla normal',       m:{p:0.5,h:0.5, g:81},  u:5,   ut:'cdita(s)'},
+    {id:'fn',  n:'Frutos secos (mezcla)',    m:{p:16, h:34,  g:33},  u:3,   ut:'puñado(s)'},
+    {id:'noc', n:'Nocilla',                  m:{p:5,  h:58,  g:32},  u:10,  ut:'cdita(s) ~10g'},
+    {id:'bcn', n:'Bacon en cintas (Hacendado)', m:{p:16.6, h:0.5, g:25}, u:4,   ut:'loncha(s)'},
+    {id:'pan', n:'Panceta curada (La Selva)',   m:{p:15,   h:1,   g:32}, u:3,   ut:'loncha(s) gruesas'},
+    // Embutidos curados (alta grasa — movidos desde proteínas)
+    {id:'chp', n:'Chorizo de pavo',          m:{p:27, h:2.1, g:21},  u:15,  ut:'lonchas'},
+    {id:'sap', n:'Salchichón de pavo',       m:{p:25, h:3,   g:26},  u:15,  ut:'lonchas'},
+    {id:'pamp',n:'Chorizo Pamplona',         m:{p:17, h:1.5, g:41},  u:5,   ut:'lonchas'},
+    {id:'sal', n:'Salami',                   m:{p:18, h:3,   g:41},  u:5,   ut:'lonchas'},
+    {id:'salc',n:'Salchichón curado',        m:{p:25, h:3,   g:32},  u:5,   ut:'lonchas'},
+  ]
+};
+
+// ── CORE CONFIG ───────────────────────────────────────────────────
+const baseTotalKcal = 2400;
+const baseDistribution = {
+  desayuno: {kcal:600, p:45, h:60, g:20},
+  comida:   {kcal:700, p:50, h:70, g:25},
+  snack:    {kcal:350, p:45, h:25, g:10},
+  cena:     {kcal:750, p:60, h:65, g:25}
+};
+
+let appState = {
+  targetKcal: baseTotalKcal,
+  scaleFactor: 1.0,
+  activeMeal: null,
+  targetMealMacros: {p:0,h:0,g:0},
+  providedMacros: {p:0,h:0,g:0},
+  plateItems: []
+};
+
+const macroSteps = ['h','p','g'];
+const macroTitles = {h:'Hidratos de carbono', p:'Proteínas', g:'Grasas'};
+let currentStepIdx = 0;
+let tempPrimarySelection = null;
+let weightChart = null;
+
+// ── STORAGE HELPERS ───────────────────────────────────────────────
+function getData(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
+  catch(e) { return def; }
+}
+function setData(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+window.onload = function() {
+  // Energy profile
+  const saved = getData('kcalBox11', null);
+  if(saved) {
+    document.getElementById('weight').value = saved.w || '';
+    document.getElementById('total-calories').value = saved.k || 2400;
+  }
+  updateDashboard();
+  // User profile
+  const prof = getData('kcalBoxProfile', null);
+  if(prof) {
+    document.getElementById('profile-name').value = prof.name || '';
+    document.getElementById('profile-goal').value = prof.goal || '';
+    document.getElementById('profile-target-weight').value = prof.targetWeight || '';
+    updateProfilePreview();
+    applyGreeting(prof.name);
+    // Carga los campos de Mifflin si ya existen en el perfil guardado
+    setTimeout(loadMifflinFields, 0);
+  }
+  // Default date for weight entry
+  document.getElementById('weight-date').value = todayISO();
+  // Carga el diario del día actual
+  renderDailyLog();
+};
+
+function todayISO() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ── GREETING ─────────────────────────────────────────────────────
+function applyGreeting(name) {
+  const greet = document.getElementById('greeting-text');
+  const sub = document.getElementById('greeting-sub');
+  const menusLabel = document.getElementById('saved-menus-entry-label');
+  if(name && name.trim()) {
+    greet.innerHTML = `¡Hola, <span>${name.trim()}!</span>`;
+    sub.textContent = '¿Qué comemos hoy?';
+    if(menusLabel) menusLabel.textContent = `Menús de ${name.trim()}`;
+  } else {
+    greet.innerHTML = '¡Hola!';
+    sub.textContent = '¿Qué comemos hoy?';
+    if(menusLabel) menusLabel.textContent = 'Mis Menús';
+  }
+}
+
+// ── MAIN PROFILE ─────────────────────────────────────────────────
+function saveProfile() {
+  const data = getData('kcalBox11', {});
+  data.w = document.getElementById('weight').value;
+  data.k = document.getElementById('total-calories').value;
+  setData('kcalBox11', data);
+  showToast('Perfil guardado');
+}
+
+// ── FULL PROFILE (profile tab) ────────────────────────────────────
+function updateProfilePreview() {
+  const name = document.getElementById('profile-name').value.trim();
+  const goal = document.getElementById('profile-goal').value;
+  const av = document.getElementById('profile-avatar');
+  av.textContent = name ? name[0].toUpperCase() : '?';
+  const badge = document.getElementById('profile-goal-badge');
+  if(goal) { badge.textContent = goal; badge.style.display='inline-block'; }
+  else { badge.style.display='none'; }
+}
+
+function saveProfileFull() {
+  const name = document.getElementById('profile-name').value.trim();
+  const goal = document.getElementById('profile-goal').value;
+  const targetWeight = parseFloat(document.getElementById('profile-target-weight').value) || null;
+  const sex = document.getElementById('profile-sex').value || null;
+  const mstWeight = parseFloat(document.getElementById('mst-weight').value) || null;
+  const mstHeight = parseFloat(document.getElementById('mst-height').value) || null;
+  const mstAge = parseFloat(document.getElementById('mst-age').value) || null;
+  const activity = parseInt(document.getElementById('activity-slider').value) || 5;
+  setData('kcalBoxProfile', {name, goal, targetWeight, sex, mstWeight, mstHeight, mstAge, activity});
+  applyGreeting(name);
+  renderGoalProgress();
+  showToast('Perfil actualizado');
+}
+
+// ── MIFFLIN-ST JEOR CALCULATOR ────────────────────────────────────
+// La ecuación más validada para población general (Mifflin et al. 1990).
+// Hombre: TMB = (10 × kg) + (6.25 × cm) + (5 × años) − 5
+// Mujer:  TMB = (10 × kg) + (6.25 × cm) + (5 × años) − 161
+// El GET (Gasto Energético Total) = TMB × factor de actividad.
+const ACTIVITY_FACTORS = [
+  null,        // 0 — no usado
+  {f:1.2,   label:'Sedentario',             desc:'Sin ejercicio o trabajo de escritorio'},
+  {f:1.2,   label:'Muy poco activo',        desc:'Actividad mínima, trabajo sedentario'},
+  {f:1.375, label:'Ligeramente activo',     desc:'Ejercicio ligero 1-2 días/semana'},
+  {f:1.375, label:'Ligeramente activo',     desc:'Ejercicio ligero 3 días/semana'},
+  {f:1.55,  label:'Moderadamente activo',   desc:'Ejercicio moderado 3-5 días/semana'},
+  {f:1.55,  label:'Moderadamente activo',   desc:'Ejercicio intenso 3-4 días/semana'},
+  {f:1.725, label:'Muy activo',             desc:'Ejercicio intenso 5-6 días/semana'},
+  {f:1.725, label:'Muy activo',             desc:'Ejercicio intenso diario'},
+  {f:1.9,   label:'Extremadamente activo',  desc:'Dobles sesiones, atleta de competición'},
+  {f:1.9,   label:'Élite / Atleta',         desc:'Entrenamiento profesional, varias sesiones/día'},
+];
+
+function selectSex(sex) {
+  document.getElementById('profile-sex').value = sex;
+  document.getElementById('sex-male-btn').classList.toggle('active-sex', sex==='M');
+  document.getElementById('sex-female-btn').classList.toggle('active-sex', sex==='F');
+  calcMifflin();
+}
+
+function updateActivityLabel() {
+  const val = parseInt(document.getElementById('activity-slider').value);
+  const entry = ACTIVITY_FACTORS[val];
+  document.getElementById('activity-label').textContent = `${val} — ${entry.label}`;
+}
+
+function calcMifflin() {
+  const sex = document.getElementById('profile-sex').value;
+  const kg  = parseFloat(document.getElementById('mst-weight').value);
+  const cm  = parseFloat(document.getElementById('mst-height').value);
+  const age = parseFloat(document.getElementById('mst-age').value);
+  const actVal = parseInt(document.getElementById('activity-slider').value);
+
+  const resultEl = document.getElementById('mifflin-result');
+  if(!sex || !kg || !cm || !age) { resultEl.style.display='none'; return; }
+
+  const tmb = Math.round((10*kg) + (6.25*cm) + (5*age) + (sex==='M' ? -5 : -161));
+  const {f:factor, label, desc} = ACTIVITY_FACTORS[actVal];
+  const get = Math.round(tmb * factor);
+
+  resultEl.style.display = 'block';
+  document.getElementById('mifflin-kcal').textContent = get.toLocaleString('es-ES');
+  document.getElementById('mifflin-tmb').textContent = tmb.toLocaleString('es-ES');
+  document.getElementById('mifflin-factor').textContent = factor.toFixed(3);
+  document.getElementById('mifflin-breakdown').innerHTML =
+    `<strong>Nivel ${actVal} · ${label}</strong> — ${desc}<br>` +
+    `TMB ${tmb} kcal × ${factor} = <strong>${get} kcal/día de gasto real</strong><br>` +
+    `<span style="font-size:0.72rem;">Ecuación Mifflin-St Jeor (1990) — referencia científica para población general</span>`;
+
+  // Sugerencia calórica según el objetivo del perfil
+  renderGoalKcalSuggestion(get);
+}
+
+// ── SUGERENCIA CALÓRICA POR OBJETIVO ──────────────────────────────
+// Basada en la evidencia científica de la nutrición deportiva y clínica:
+// - Déficit para pérdida de grasa: entre -300 y -500 kcal/día del GET
+//   (déficits mayores aceleran pérdida muscular — Helms et al. 2014)
+// - Superávit para ganancia muscular: entre +200 y +400 kcal/día
+//   (superávits mayores aumentan acumulación de grasa — Slater & Phillips 2011)
+// - Definición muscular: déficit conservador -200/-350 para preservar masa
+// - Mantenimiento: ±100 kcal del GET (margen de error del propio cálculo)
+// - Rendimiento deportivo: GET o ligero superávit (+100/+300) según fase
+const GOAL_KCAL_CONFIG = {
+  'Pérdida de grasa': {
+    label: 'Pérdida de grasa',
+    scenarios: [
+      {name:'Déficit moderado', delta:-300, tag:'Recomendado', recommended:true,
+       note:'Pierde grasa preservando músculo. Ritmo óptimo: ~0.5 kg/semana.'},
+      {name:'Déficit agresivo', delta:-500, tag:'Máximo aconsejable', recommended:false,
+       note:'Solo si tienes prisa. Mayor riesgo de pérdida muscular y fatiga.'},
+    ],
+    rationale:'Un déficit de 300-500 kcal/día produce pérdida de grasa sostenible sin sacrificar masa muscular. Déficits mayores de 500 kcal aumentan el catabolismo muscular (Helms et al., 2014). No bajes nunca de tu TMB.',
+  },
+  'Definición muscular': {
+    label: 'Definición muscular',
+    scenarios: [
+      {name:'Déficit suave', delta:-200, tag:'Recomendado', recommended:true,
+       note:'Preserva al máximo la masa muscular mientras reduces grasa.'},
+      {name:'Déficit moderado', delta:-350, tag:'Opción válida', recommended:false,
+       note:'Algo más de velocidad, con mayor riesgo de pérdida muscular.'},
+    ],
+    rationale:'La definición muscular requiere un déficit conservador (-150 a -350 kcal) para mantener el músculo construido. Recortes agresivos en esta fase destruyen el trabajo de volumen previo.',
+  },
+  'Volumen / Ganancia de masa': {
+    label: 'Volumen / Ganancia de masa',
+    scenarios: [
+      {name:'Superávit limpio', delta:+250, tag:'Recomendado', recommended:true,
+       note:'Máxima ganancia muscular con mínima acumulación de grasa.'},
+      {name:'Superávit agresivo', delta:+500, tag:'Solo bulking', recommended:false,
+       note:'Ganancias rápidas pero con más grasa acumulada. "Dirty bulk".'},
+    ],
+    rationale:'El músculo solo puede sintetizarse a un ritmo de ~0.25-0.5 kg/semana en novatos y mucho menos en avanzados. Superávits superiores a +500 kcal se almacenan principalmente como grasa (Slater & Phillips, 2011).',
+  },
+  'Mantenimiento': {
+    label: 'Mantenimiento',
+    scenarios: [
+      {name:'Mantenimiento exacto', delta:0, tag:'Tu GET real', recommended:true,
+       note:'Come exactamente lo que gastas. Composición corporal estable.'},
+      {name:'Mantenimiento flexible', delta:+100, tag:'Margen de error', recommended:false,
+       note:'Pequeño margen para días de mayor gasto o variaciones del cálculo.'},
+    ],
+    rationale:'El GET de Mifflin-St Jeor tiene un margen de error de ±10%. Mantenerte en ±100 kcal de tu GET calculado es estadísticamente equivalente al mantenimiento real.',
+  },
+  'Rendimiento deportivo': {
+    label: 'Rendimiento deportivo',
+    scenarios: [
+      {name:'Mantenimiento activo', delta:0, tag:'Base de rendimiento', recommended:true,
+       note:'Cubre tu gasto real. Fundamental para rendir en competición.'},
+      {name:'Fase de carga', delta:+200, tag:'Precompetición', recommended:false,
+       note:'Ligero superávit para asegurar glucógeno y recuperación óptima.'},
+    ],
+    rationale:'En rendimiento deportivo la prioridad es cubrir el GET al completo — el déficit calórico reduce la potencia, la velocidad de recuperación y aumenta el riesgo de lesión (Burke et al., 2011). Periodizar la ingesta según fases de entrenamiento.',
+  },
+  'Salud general': {
+    label: 'Salud general',
+    scenarios: [
+      {name:'Equilibrio energético', delta:0, tag:'Recomendado', recommended:true,
+       note:'Mantén tu peso actual con una dieta variada y de calidad.'},
+      {name:'Déficit suave', delta:-200, tag:'Si quieres perder algo', recommended:false,
+       note:'Pérdida lenta y sostenible si tienes algo de sobrepeso.'},
+    ],
+    rationale:'Para salud general, el objetivo principal es cubrir el GET sin déficits ni superávits extremos. La calidad nutricional (densidad de micronutrientes) importa más que el número exacto de kcal.',
+  },
+};
+
+function renderGoalKcalSuggestion(get) {
+  const goalEl = document.getElementById('goal-kcal-suggestion');
+  const goal = document.getElementById('profile-goal').value;
+  const config = GOAL_KCAL_CONFIG[goal];
+
+  if(!config) {
+    goalEl.style.display = 'none';
+    document.getElementById('apply-mifflin-btn').textContent = 'Aplicar GET como objetivo calórico';
+    return;
+  }
+
+  goalEl.style.display = 'block';
+  document.getElementById('goal-kcal-label').textContent = config.label;
+
+  // Genera las tarjetas — al clicar, se selecciona (actualiza la nota y el
+  // botón) pero NO aplica todavía. El usuario aplica con el botón de abajo.
+  const cardsEl = document.getElementById('goal-kcal-cards');
+  cardsEl.innerHTML = config.scenarios.map((s, idx) => {
+    const kcal = get + s.delta;
+    return `<div class="goal-kcal-card ${s.recommended ? 'recommended' : ''}"
+      id="goal-card-${idx}"
+      onclick="selectGoalScenario(${idx}, ${get})"
+      style="cursor:pointer;">
+      <span class="gkc-val">${kcal.toLocaleString('es-ES')} kcal</span>
+      <span class="gkc-label">${s.name}</span>
+      <span style="display:block;font-size:0.65rem;color:${s.recommended?'var(--lime-dark)':'var(--ink-3)'};margin-top:3px;">${s.tag}</span>
+    </div>`;
+  }).join('');
+
+  // Almacena los escenarios del objetivo actual para que selectGoalScenario
+  // pueda acceder a ellos sin depender del closure de renderGoalKcalSuggestion.
+  window._currentGoalScenarios = config.scenarios;
+  window._currentGoalRationale = config.rationale;
+
+  // Muestra por defecto la nota del escenario recomendado
+  const recIdx = config.scenarios.findIndex(s => s.recommended);
+  selectGoalScenario(recIdx, get);
+}
+
+// Selecciona un escenario al clicar su tarjeta: actualiza la nota explicativa
+// y el botón de aplicar — pero NO aplica todavía al objetivo calórico.
+function selectGoalScenario(idx, get) {
+  const scenarios = window._currentGoalScenarios;
+  const rationale = window._currentGoalRationale;
+  if(!scenarios || idx >= scenarios.length) return;
+
+  const s = scenarios[idx];
+  const kcal = get + s.delta;
+
+  // Resalta visualmente la tarjeta seleccionada
+  scenarios.forEach((_, i) => {
+    const card = document.getElementById('goal-card-' + i);
+    if(card) card.classList.toggle('recommended', i === idx);
+  });
+
+  // Actualiza la nota explicativa con la info de la tarjeta clicada
+  document.getElementById('goal-kcal-rationale').innerHTML =
+    `<strong style="color:var(--ink-2);">${s.name} (${kcal.toLocaleString('es-ES')} kcal):</strong> ${s.note}<br><br>` +
+    `<em style="font-size:0.72rem;">${rationale}</em>`;
+
+  // Actualiza el botón de aplicar para que aplique este escenario
+  const btn = document.getElementById('apply-mifflin-btn');
+  btn.textContent = `Aplicar ${kcal.toLocaleString('es-ES')} kcal (${s.name})`;
+  btn.onclick = () => applyGoalKcal(kcal);
+}
+
+function applyGoalKcal(kcal) {
+  const kcalInput = document.getElementById('total-calories');
+  if(kcalInput) {
+    kcalInput.value = kcal;
+    updateDashboard();
+  }
+  saveProfileFull();
+  showToast(`${kcal.toLocaleString('es-ES')} kcal aplicadas como objetivo diario`);
+}
+
+function applyMifflinToCalories() {
+  // Fallback por si se llama sin objetivo seleccionado — aplica el GET directo
+  const sex = document.getElementById('profile-sex').value;
+  const kg  = parseFloat(document.getElementById('mst-weight').value);
+  const cm  = parseFloat(document.getElementById('mst-height').value);
+  const age = parseFloat(document.getElementById('mst-age').value);
+  const actVal = parseInt(document.getElementById('activity-slider').value);
+  if(!sex || !kg || !cm || !age) return;
+  const tmb = Math.round((10*kg) + (6.25*cm) + (5*age) + (sex==='M' ? -5 : -161));
+  const get = Math.round(tmb * ACTIVITY_FACTORS[actVal].f);
+  applyGoalKcal(get);
+}
+
+// Carga los campos de Mifflin desde el perfil guardado al abrir la pestaña
+function loadMifflinFields() {
+  const prof = getData('kcalBoxProfile', null);
+  if(!prof) return;
+  if(prof.sex) {
+    document.getElementById('profile-sex').value = prof.sex;
+    document.getElementById('sex-male-btn').classList.toggle('active-sex', prof.sex==='M');
+    document.getElementById('sex-female-btn').classList.toggle('active-sex', prof.sex==='F');
+  }
+  if(prof.mstWeight) document.getElementById('mst-weight').value = prof.mstWeight;
+  if(prof.mstHeight) document.getElementById('mst-height').value = prof.mstHeight;
+  if(prof.mstAge)    document.getElementById('mst-age').value = prof.mstAge;
+  if(prof.activity)  {
+    document.getElementById('activity-slider').value = prof.activity;
+    updateActivityLabel();
+  }
+  calcMifflin();
+}
+
+
+function addWeightEntry() {
+  const val = parseFloat(document.getElementById('weight-entry').value);
+  const date = document.getElementById('weight-date').value;
+  if(!val || !date) { showToast('Introduce peso y fecha'); return; }
+  const log = getData('kcalWeightLog', []);
+  const existing = log.findIndex(e=>e.date===date);
+  if(existing>=0) log[existing].val = val;
+  else log.push({date, val});
+  log.sort((a,b)=>a.date.localeCompare(b.date));
+  setData('kcalWeightLog', log);
+  document.getElementById('weight-entry').value = '';
+  document.getElementById('weight-date').value = todayISO();
+  renderWeightLog();
+}
+
+function deleteWeightEntry(date) {
+  const log = getData('kcalWeightLog', []).filter(e=>e.date!==date);
+  setData('kcalWeightLog', log);
+  renderWeightLog();
+}
+
+function renderWeightLog() {
+  const log = getData('kcalWeightLog', []);
+  const listEl = document.getElementById('weight-log-list');
+  if(!log.length) {
+    listEl.innerHTML = '<div class="no-data">Sin registros todavía.</div>';
+  } else {
+    const recent = [...log].reverse().slice(0,8);
+    listEl.innerHTML = recent.map(e=>`
+      <div class="weight-log-item">
+        <span class="wli-date">${formatDate(e.date)}</span>
+        <span class="wli-val">${e.val} kg</span>
+        <button class="wli-del" onclick="deleteWeightEntry('${e.date}')" title="Eliminar">✕</button>
+      </div>`).join('');
+  }
+  renderWeightChart(log);
+  renderGoalProgress();
+}
+
+// ── GOAL PROGRESS / GAMIFICATION ───────────────────────────────────
+// Compares latest weight log entry against the target weight and renders
+// a motivational progress bar + dynamic headline. Direction (losing vs
+// gaining) is inferred automatically from where the target sits relative
+// to the first logged weight, so it works for cutting AND bulking.
+function renderGoalProgress() {
+  const card = document.getElementById('goal-progress-card');
+  const content = document.getElementById('goal-progress-content');
+  const prof = getData('kcalBoxProfile', null);
+  const log = getData('kcalWeightLog', []);
+
+  if(!prof || !prof.targetWeight || log.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  const target = prof.targetWeight;
+  const startWeight = log[0].val;
+  const currentWeight = log[log.length-1].val;
+  const totalDistance = Math.abs(startWeight - target);
+  const remaining = Math.abs(currentWeight - target);
+  const traveled = Math.max(0, totalDistance - remaining);
+  const pct = totalDistance > 0 ? Math.min(100, Math.round((traveled/totalDistance)*100)) : 100;
+  const diff = Math.round(Math.abs(currentWeight - target) * 10) / 10;
+
+  card.style.display = 'block';
+
+  // Goal reached (within 0.3kg tolerance)
+  if(diff <= 0.3) {
+    content.innerHTML = `<div class="goal-reached-badge">🎉 ¡Objetivo conseguido! Estás en ${currentWeight}kg</div>`;
+    return;
+  }
+
+  const losing = target < startWeight;
+  const verb = losing ? 'perder' : 'ganar';
+  const verbing = losing ? 'Vas perdiendo' : 'Vas ganando';
+
+  // Motivational tier based on progress
+  let mood;
+  if(pct >= 75) mood = '🔥 ¡Ya casi lo tienes!';
+  else if(pct >= 40) mood = '💪 Vas a mitad de camino';
+  else if(pct > 0) mood = '🚀 Acabas de arrancar';
+  else mood = '🎯 Cada registro cuenta';
+
+  content.innerHTML = `
+    <div class="goal-headline">Te quedan <span class="accent-num">${diff} kg</span> para tu objetivo</div>
+    <div class="goal-subline">${mood} · necesitas ${verb} ${diff}kg más</div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+    <div class="progress-endpoints">
+      <span>${startWeight}kg</span>
+      <span>${pct}%</span>
+      <span>${target}kg</span>
+    </div>
+    <div class="milestone-row">
+      <div class="milestone-box"><div class="ms-val">${currentWeight}kg</div><div class="ms-label">Actual</div></div>
+      <div class="milestone-box"><div class="ms-val">${traveled.toFixed(1)}kg</div><div class="ms-label">${verbing}</div></div>
+      <div class="milestone-box"><div class="ms-val">${diff}kg</div><div class="ms-label">Restantes</div></div>
+    </div>`;
+}
+
+function formatDate(iso) {
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function renderWeightChart(log) {
+  const wrap = document.getElementById('chart-wrap');
+  const placeholder = document.getElementById('chart-placeholder');
+  if(log.length < 2) {
+    wrap.style.display='none'; placeholder.style.display='block'; return;
+  }
+  wrap.style.display='block'; placeholder.style.display='none';
+  const labels = log.map(e=>formatDate(e.date));
+  const data = log.map(e=>e.val);
+  const ctx = document.getElementById('weight-chart').getContext('2d');
+  if(weightChart) weightChart.destroy();
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#8ab820',
+        backgroundColor: 'rgba(200,240,78,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#8ab820',
+        pointRadius: 4,
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend:{display:false} },
+      scales: {
+        x: { ticks:{font:{size:10}, color:'#8a8a97'}, grid:{color:'rgba(0,0,0,0.04)'} },
+        y: {
+          ticks:{font:{size:10}, color:'#8a8a97', callback: v=>v+'kg'},
+          grid:{color:'rgba(0,0,0,0.04)'},
+          suggestedMin: Math.min(...data)-2,
+          suggestedMax: Math.max(...data)+2
+        }
+      }
+    }
+  });
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────
+function updateDashboard() {
+  const k = parseInt(document.getElementById('total-calories').value)||2400;
+  appState.targetKcal = k;
+  appState.scaleFactor = k/baseTotalKcal;
+  const sf = appState.scaleFactor;
+  document.getElementById('dash-p').textContent = Math.round(200*sf)+'g';
+  document.getElementById('dash-h').textContent = Math.round(220*sf)+'g';
+  document.getElementById('dash-g').textContent = Math.round(80*sf)+'g';
+  ['desayuno','comida','snack','cena'].forEach(m=>{
+    document.getElementById('m-kcal-'+m).textContent = Math.round(baseDistribution[m].kcal*sf)+' kcal';
+    document.getElementById('m-mac-'+m).textContent = `P ${Math.round(baseDistribution[m].p*sf)}g · H ${Math.round(baseDistribution[m].h*sf)}g · G ${Math.round(baseDistribution[m].g*sf)}g`;
+  });
+  // Refresca las barras del diario si cambia el objetivo calórico
+  if(typeof renderDailyLog === 'function') renderDailyLog();
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────
+function goToScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ── MEAL FLOW ────────────────────────────────────────────────────
+function startMealFlow(mealId) {
+  appState.activeMeal = mealId;
+  const sf = appState.scaleFactor;
+  const base = baseDistribution[mealId];
+  appState.targetMealMacros = {p:base.p*sf, h:base.h*sf, g:base.g*sf};
+  startModularFlow();
+}
+
+// Guarda el estado del plato ANTES de cada paso, para poder volver atrás
+// y corregir un error sin tener que reconstruir todo desde cero. Cada
+// snapshot recuerda los macros aportados y los ingredientes hasta ese
+// punto, listos para restaurar.
+let stepSnapshots = [];
+
+function snapshotBeforeStep() {
+  stepSnapshots[currentStepIdx] = {
+    providedMacros: {...appState.providedMacros},
+    plateItems: appState.plateItems.map(i => ({...i})) // copia superficial de cada item
+  };
+}
+
+function startModularFlow() {
+  appState.providedMacros = {p:0,h:0,g:0};
+  appState.plateItems = [];
+  currentStepIdx = 0;
+  stepSnapshots = [];
+  snapshotBeforeStep();
+  renderMacroListScreen();
+}
+
+function renderMacroListScreen() {
+  snapshotBeforeStep();
+  const stepMacro = macroSteps[currentStepIdx];
+  const macroLabel = macroTitles[stepMacro];
+  document.getElementById('macro-title').textContent = `Paso ${currentStepIdx+1}/3 — ${macroLabel}`;
+
+  // Comprueba si este macro ya está cubierto (o superado) por lo que
+  // aportaron los pasos anteriores. Si es así, no tiene sentido mostrar
+  // la lista de alimentos — el usuario no necesita elegir nada para este macro.
+  // En vez de mostrar una lista que no hace nada al seleccionar, informamos
+  // claramente y avanzamos automáticamente al siguiente paso.
+  const targetRemaining = appState.targetMealMacros[stepMacro] - appState.providedMacros[stepMacro];
+  const alreadyCovered = targetRemaining <= 0;
+  if(alreadyCovered) {
+    const alreadyG = Math.round(Math.abs(targetRemaining));
+    // Mostramos un aviso pero NO bloqueamos — el usuario puede añadir
+    // igualmente y luego ajustar con la barra en los resultados.
+    const warningHtml = `
+      <div class="suggestion-block" style="margin-bottom:14px;background:#fef9c3;border-left-color:#ca8a04;">
+        ⚠️ Las ${macroLabel.toLowerCase()} ya están cubiertas por pasos anteriores (${alreadyG}g extra).
+        Puedes añadir algo igualmente y ajustar la cantidad con la barra en el resultado.
+      </div>`;
+    // Inyectar aviso antes de las cards — se hará después de renderizarlas
+    document.getElementById('macro-cards-container').dataset.warning = warningHtml;
+  } else {
+    document.getElementById('macro-cards-container').dataset.warning = '';
+  }
+
+  // El botón de abajo dice "Atrás" y vuelve al paso anterior (ej. de
+  // Grasas a Proteína, de Proteína a Hidratos) cuando hay un paso previo.
+  // En el primer paso (Hidratos) no hay nada a lo que volver dentro del
+  // flujo modular, así que se comporta como "Cancelar" y sale al menú
+  // de modo de preparación.
+  const backBtn = document.getElementById('macro-list-back-btn');
+  backBtn.textContent = currentStepIdx > 0 ? '← Atrás' : 'Cancelar';
+
+  const container = document.getElementById('macro-cards-container');
+  container.innerHTML = '';
+  tempPrimarySelection = null;
+  const eggContainer = document.getElementById('egg-option-container');
+  eggContainer.style.display = (stepMacro==='p') ? 'block' : 'none';
+  if(stepMacro==='p') document.getElementById('add-egg-check').checked = false;
+  foodDB[stepMacro].forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    card.textContent = item.n;
+    card.onclick = ()=>{
+      document.querySelectorAll('#macro-cards-container .option-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      tempPrimarySelection = item;
+      if(item.id==='mej') showToast('Pésalos tal cual los compras, con cáscara incluida');
+      if(item.id==='alm') showToast('Pésalas tal cual las compras, con cáscara incluida');
+      setTimeout(()=>goToMixQuestionScreen(), 200);
+    };
+    container.appendChild(card);
+  });
+  // Si el macro ya estaba cubierto, inyecta el aviso al principio
+  const warning = container.dataset.warning;
+  if(warning) {
+    const div = document.createElement('div');
+    div.innerHTML = warning;
+    container.insertBefore(div.firstElementChild, container.firstChild);
+  }
+  goToScreen('screen-macro-list');
+}
+
+// Restaura el plato al estado justo ANTES del último paso (el de Grasas,
+// normalmente), para poder corregir esa elección sin perder lo ya
+// construido en Hidratos/Proteína. Se usa desde el botón "Atrás" de la
+// pantalla de resultados.
+function goBackToLastStep() {
+  const lastStepIdx = macroSteps.length - 1; // el último paso completado
+  const snap = stepSnapshots[lastStepIdx];
+  if(!snap) { goToScreen('screen-welcome'); return; }
+  appState.providedMacros = {...snap.providedMacros};
+  appState.plateItems = snap.plateItems.map(i => ({...i}));
+  currentStepIdx = lastStepIdx;
+  renderMacroListScreen();
+}
+
+// Navegación "Atrás" DENTRO del flujo modular: de Grasas vuelve a
+// Proteína, de Proteína vuelve a Hidratos, restaurando exactamente el
+// estado del plato que había antes de elegir el paso actual (así no se
+// pierde nada de lo ya construido en pasos previos). Si ya estamos en
+// el primer paso (Hidratos), no hay paso anterior dentro del flujo, así
+// que se sale al menú de modo de preparación.
+function goToPreviousStep() {
+  if(currentStepIdx === 0) {
+    goToScreen('screen-meal');
+    return;
+  }
+  currentStepIdx--;
+  const snap = stepSnapshots[currentStepIdx];
+  if(snap) {
+    appState.providedMacros = {...snap.providedMacros};
+    appState.plateItems = snap.plateItems.map(i => ({...i}));
+  }
+  renderMacroListScreen();
+}
+
+// Detecta si un alimento de la categoría "grasa" en realidad aporta más
+// proteína que grasa por 100g (ej. Queso light: 30g proteína vs 12g
+// grasa). Usarlo como ÚNICA fuente de grasa suele desplazar de más a las
+// proteínas magras del plato, así que conviene sugerir combinarlo con
+// una grasa "pura" (aceite, aguacate...) para no robarle protagonismo.
+function isLowFatRatioItem(item) {
+  return item.m.g > 0 && item.m.p > item.m.g;
+}
+
+function handleSkipMacro() {
+  currentStepIdx++;
+  if(currentStepIdx>=macroSteps.length) generateResults();
+  else renderMacroListScreen();
+}
+
+function goToMixQuestionScreen() {
+  if(!tempPrimarySelection) return;
+  if(macroSteps[currentStepIdx]==='p' && document.getElementById('add-egg-check').checked) {
+    const egg = {p:6.8,h:0.5,g:5.2};
+    appState.providedMacros.p += egg.p;
+    appState.providedMacros.h += egg.h;
+    appState.providedMacros.g += egg.g;
+    appState.plateItems.push({name:'Huevo entero',grams:55,visualUnit:'1 ud'});
+  }
+  document.getElementById('mix-primary-name').textContent = tempPrimarySelection.n;
+  const selectBox = document.getElementById('mix-secondary-select');
+  selectBox.innerHTML = '';
+  const macroKey = macroSteps[currentStepIdx];
+  foodDB[macroKey].forEach(item=>{
+    if(item.id!==tempPrimarySelection.id) {
+      const opt = document.createElement('option');
+      opt.value = item.id; opt.textContent = item.n;
+      selectBox.appendChild(opt);
+    }
+  });
+
+  // Si el alimento elegido como fuente de GRASA en realidad aporta más
+  // proteína que grasa (ej. Queso light), avisamos de que usarlo solo
+  // puede desplazar de más a las proteínas magras del plato, y
+  // preseleccionamos en el desplegable un alimento de grasa "pura"
+  // para que combinarlo sea un solo toque.
+  const warningBox = document.getElementById('low-fat-warning');
+  if(macroKey === 'g' && isLowFatRatioItem(tempPrimarySelection)) {
+    const pureFatOptions = foodDB.g.filter(i => i.id !== tempPrimarySelection.id && !isLowFatRatioItem(i) && i.m.g >= 15);
+    const recommended = pureFatOptions.sort((a,b)=>b.m.g-a.m.g)[0]; // el más graso "puro"
+    if(recommended) {
+      selectBox.value = recommended.id;
+      warningBox.style.display = 'block';
+      warningBox.innerHTML = `💡 <strong>${tempPrimarySelection.n}</strong> tiene más proteína que grasa — si lo usas solo, puede quitarle protagonismo a tus proteínas magras. Te hemos preseleccionado <strong>${recommended.n}</strong> abajo para combinarlo.`;
+    } else {
+      warningBox.style.display = 'none';
+    }
+  } else {
+    warningBox.style.display = 'none';
+  }
+
+  updateMixButtonLabels();
+  goToScreen('screen-macro-mix');
+}
+
+// Updates "Más de esto" / "Más de aquello" buttons to show real food names,
+// so it reads like talking to a maître, not picking a ratio.
+function updateMixButtonLabels() {
+  if(!tempPrimarySelection) return;
+  const macroKey = macroSteps[currentStepIdx];
+  const secId = document.getElementById('mix-secondary-select').value;
+  const secItem = foodDB[macroKey].find(i=>i.id===secId);
+  const primName = tempPrimarySelection.n;
+  const secName = secItem ? secItem.n : 'lo otro';
+  document.getElementById('mix-btn-primary-more').textContent = `Más de ${primName}`;
+  document.getElementById('mix-btn-secondary-more').textContent = `Más de ${secName}`;
+}
+
+function handleMixSelection(mode) {
+  const macroKey = macroSteps[currentStepIdx];
+  const targetRemaining = Math.max(0, appState.targetMealMacros[macroKey]-appState.providedMacros[macroKey]);
+
+  if(targetRemaining>0) {
+    if(mode==='none') {
+      calculateAndAddGrams(tempPrimarySelection, macroKey, targetRemaining);
+    } else {
+      // 8020 = "Más de esto" (80% principal) · 5050 = "Igual de los dos" · 2080 = "Más de aquello" (20% principal)
+      const ratios = {'8020':0.8, '5050':0.5, '2080':0.2};
+      const rp = ratios[mode] ?? 0.5;
+      calculateAndAddGrams(tempPrimarySelection, macroKey, targetRemaining*rp);
+      const secId = document.getElementById('mix-secondary-select').value;
+      const secItem = foodDB[macroKey].find(i=>i.id===secId);
+      if(secItem) calculateAndAddGrams(secItem, macroKey, targetRemaining*(1-rp));
+    }
+  }
+  // No se interrumpe al usuario con avisos a mitad de construcción del
+  // plato — eso rompería la promesa de "tú eliges, nosotros cuadramos".
+  // calculateAndAddGrams ya limita cada alimento a una ración natural
+  // razonable (máx. ~6 unidades), y generateResults() se encarga de
+  // recuadrar cualquier desvío que quede al final, ingrediente por
+  // ingrediente, sin que el usuario tenga que decidir nada por el camino.
+  currentStepIdx++;
+  if(currentStepIdx>=macroSteps.length) generateResults();
+  else renderMacroListScreen();
+}
+
+function calculateAndAddGrams(item, targetMacroKey, targetGramsNeeded) {
+  const macroVal = item.m[targetMacroKey];
+  if(macroVal<=0) return;
+  let grams = (targetGramsNeeded/macroVal)*100;
+
+  // Tope de ración razonable: ningún alimento "de acompañamiento" debería
+  // calcularse en cantidades absurdas (8 lonchas de queso, 600g de queso
+  // batido...). Si el alimento tiene unidad natural (loncha, cda, taza...),
+  // capamos a un máximo de ~6 unidades naturales — más que eso ya no es
+  // una ración, es un disparate culinario. El déficit de macro que quede
+  // por debajo del objetivo se gestiona después como un desvío más,
+  // dentro de la tolerancia normal del plato.
+  const MAX_NATURAL_UNITS = 6;
+  if(item.u) {
+    const maxGramsForUnit = (MAX_NATURAL_UNITS / item.u) * 100;
+    if(grams > maxGramsForUnit) grams = maxGramsForUnit;
+  }
+
+  const units = (grams/100)*item.u;
+  appState.providedMacros.p += (grams/100)*item.m.p;
+  appState.providedMacros.h += (grams/100)*item.m.h;
+  appState.providedMacros.g += (grams/100)*item.m.g;
+  appState.plateItems.push({
+    name: item.n,
+    grams: Math.round(grams),
+    visualUnit: `~${units.toFixed(1).replace('.0','')} ${item.ut}`,
+    primaryMacro: targetMacroKey,
+    refItem: item
+  });
+}
+
+function generateResults() {
+  // Tolerancia: por debajo de 15g no merece la pena tocar nada.
+  // A partir de 15g, la app AJUSTA SOLA las cantidades del plato
+  // (reduce el ingrediente sobrante) y lo deja anotado en observaciones,
+  // en vez de devolverle al usuario una sugerencia para que la aplique
+  // él mismo. El usuario nunca hace cuentas — la app cuadra el plato.
+  const TOLERANCE = 15;
+  const labels = {p:'proteína', h:'hidratos', g:'grasa'};
+  const adjustmentNotes = [];
+
+  // Mantiene registro de qué ingredientes se tocaron, para resaltarlos
+  // visualmente en el desglose del plato.
+  const adjustedItemNames = new Set();
+
+  function autoAdjustMacro(macroKey) {
+    let diff = appState.providedMacros[macroKey] - appState.targetMealMacros[macroKey];
+    if(diff <= TOLERANCE) return; // solo actuamos sobre EXCESOS relevantes
+
+    const MIN_PORTION_FACTOR = 0.4;
+
+    function adjustPass(contributors) {
+      const contributions = contributors.map(i => ({
+        item: i,
+        macroGiven: (i.grams/100) * i.refItem.m[macroKey]
+      }));
+      const totalGiven = contributions.reduce((s,c)=>s+c.macroGiven, 0);
+      if(totalGiven <= 0) return;
+
+      contributions.forEach(c => {
+        const share = c.macroGiven / totalGiven;
+        const macroToRemove = diff * share;
+        let gramsToRemove = Math.round(macroToRemove / (c.item.refItem.m[macroKey]/100));
+        const minGrams = Math.max(5, Math.round(c.item.grams * MIN_PORTION_FACTOR));
+        gramsToRemove = Math.min(gramsToRemove, c.item.grams - minGrams);
+        if(gramsToRemove <= 0) return;
+
+        const oldGrams = c.item.grams;
+        const newGrams = oldGrams - gramsToRemove;
+        const factor = newGrams / oldGrams;
+        appState.providedMacros.p -= (oldGrams/100)*c.item.refItem.m.p * (1-factor);
+        appState.providedMacros.h -= (oldGrams/100)*c.item.refItem.m.h * (1-factor);
+        appState.providedMacros.g -= (oldGrams/100)*c.item.refItem.m.g * (1-factor);
+
+        c.item.grams = newGrams;
+        if(c.item.refItem.u) {
+          const units = (newGrams/100) * c.item.refItem.u;
+          c.item.visualUnit = `~${units.toFixed(1).replace('.0','')} ${c.item.refItem.ut}`;
+        }
+        adjustedItemNames.add(c.item.name);
+        adjustmentNotes.push(`Se ha ajustado la cantidad de <strong>${c.item.name}</strong> (${oldGrams}g → ${newGrams}g) para cuadrar la ${labels[macroKey]}.`);
+      });
+    }
+
+    // Pase 1: solo ingredientes cuyo macro PRINCIPAL es este (respetando
+    // el mínimo del 40% para no dejarlos en cantidades ridículas).
+    let primaryContributors = appState.plateItems.filter(i => i.refItem && i.primaryMacro === macroKey && i.refItem.m[macroKey] > 0);
+    if(primaryContributors.length === 0) {
+      primaryContributors = appState.plateItems.filter(i => i.refItem && i.refItem.m[macroKey] > 0);
+    }
+    if(primaryContributors.length === 0) return;
+    adjustPass(primaryContributors);
+
+    // Pase 2: si el suelo del 40% no fue suficiente para corregir del
+    // todo el exceso, el causante real puede ser un ingrediente
+    // "secundario" que contamina este macro sin ser su función principal
+    // (ej. Queso light, elegido como fuente de grasa, pero que aporta
+    // mucha más proteína de la esperada). Se incluye ahora en el reparto.
+    diff = appState.providedMacros[macroKey] - appState.targetMealMacros[macroKey];
+    if(diff > TOLERANCE) {
+      const secondaryContributors = appState.plateItems.filter(i =>
+        i.refItem && i.primaryMacro !== macroKey && i.refItem.m[macroKey] > 0
+      );
+      if(secondaryContributors.length > 0) {
+        adjustPass(secondaryContributors);
+      }
+    }
+  }
+
+  // Ajustamos en orden p -> h -> g; cada ajuste puede ligeramente mover
+  // otros macros, así que tras todos los ajustes recalculamos diffs reales.
+  autoAdjustMacro('p');
+  autoAdjustMacro('h');
+  autoAdjustMacro('g');
+
+  // ── Render del desglose del plato con sliders de ajuste en tiempo real
+  // El usuario puede subir o bajar la cantidad de cada ingrediente con
+  // una barra deslizante, y los macros/kcal del computo total se
+  // actualizan al instante — sin tocar un solo número a mano.
+  // Rango del slider: 50% a 200% de la cantidad calculada (mínimo 5g).
+  const plateContainer = document.getElementById('result-plate-items');
+  plateContainer.innerHTML = appState.plateItems.map((i, idx) => {
+    const wasAdjusted = adjustedItemNames.has(i.name);
+    const baseGrams = i.grams;
+    const minG = Math.max(5, Math.round(baseGrams * 0.1));
+    const maxG = Math.round(baseGrams * 5);
+    return `
+    <div class="result-item-wrap" data-idx="${idx}">
+      <div class="result-item" style="padding-bottom:6px;">
+        <div>
+          <div class="ri-name">${i.name}${wasAdjusted ? ' <span style="font-size:0.68rem;color:var(--lime-dark);">· ajustado</span>' : ''}</div>
+          <div class="ri-unit" id="ru-${idx}">${i.visualUnit||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" id="gi-${idx}" value="${i.grams}" min="${minG}" max="${maxG}"
+            style="width:62px;text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1rem;color:var(--lime-dark);border:1px solid var(--border);border-radius:6px;padding:3px 4px;background:var(--surface);"
+            oninput="onInputChange(this, ${idx})">
+          <span style="font-size:0.85rem;color:var(--ink-3);">g</span>
+        </div>
+      </div>
+      <div style="padding:0 2px 12px; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.68rem;color:var(--ink-3);white-space:nowrap;">${minG}</span>
+        <input type="range" class="gram-slider"
+          id="gs-${idx}"
+          min="${minG}" max="${maxG}" value="${baseGrams}"
+          data-idx="${idx}" data-base="${baseGrams}"
+          oninput="onSliderChange(this)"
+          style="flex:1; accent-color:var(--lime-dark); height:4px; cursor:pointer;">
+        <span style="font-size:0.68rem;color:var(--ink-3);white-space:nowrap;">${maxG}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Inicializa el gradiente visual de cada slider y los totales live
+  setTimeout(() => {
+    document.querySelectorAll('.gram-slider').forEach(slider => {
+      const min = parseInt(slider.min), max = parseInt(slider.max), val = parseInt(slider.value);
+      const pct = ((val - min) / (max - min)) * 100;
+      slider.style.background = `linear-gradient(to right, var(--lime-dark) ${pct}%, var(--border-strong) ${pct}%)`;
+    });
+    recalcLiveTotals();
+  }, 0);
+
+  // ── Tabla de macros con los valores YA ajustados
+  const tbody = document.getElementById('result-table-body');
+  const diffP = appState.providedMacros.p-appState.targetMealMacros.p;
+  const diffH = appState.providedMacros.h-appState.targetMealMacros.h;
+  const diffG = appState.providedMacros.g-appState.targetMealMacros.g;
+  const makeRow = (label,target,actual,diff)=>{
+    const cls = Math.abs(diff)<=TOLERANCE?'diff-ok':(diff>0?'diff-pos':'diff-neg');
+    const prefix = diff>0?'+':'';
+    return `<tr><td>${label}</td><td>${Math.round(target)}g</td><td>${Math.round(actual)}g</td><td class="${cls}">${prefix}${Math.round(diff)}g</td></tr>`;
+  };
+  tbody.innerHTML = makeRow('Proteína',appState.targetMealMacros.p,appState.providedMacros.p,diffP)
+    + makeRow('Hidratos',appState.targetMealMacros.h,appState.providedMacros.h,diffH)
+    + makeRow('Grasas',appState.targetMealMacros.g,appState.providedMacros.g,diffG);
+
+  // ── Kcal totales del plato ya ajustado + kcal recomendadas para esa comida
+  const realKcal = Math.round(appState.providedMacros.p*4 + appState.providedMacros.h*4 + appState.providedMacros.g*9);
+  document.getElementById('result-kcal-value').textContent = realKcal;
+  const mealLabels = {desayuno:'Desayuno', comida:'Comida', snack:'Snack', cena:'Cena'};
+  const targetKcalForMeal = Math.round(baseDistribution[appState.activeMeal].kcal * appState.scaleFactor);
+  document.getElementById('result-kcal-target').textContent =
+    `${targetKcalForMeal} kcal (${mealLabels[appState.activeMeal] || appState.activeMeal})`;
+
+  // ── Observaciones: solo informan de lo que la app YA hizo, o de
+  // déficits que no puede resolver sola (ahí sí pide añadir algo).
+  const suggBox = document.getElementById('result-suggestions');
+  suggBox.innerHTML = '';
+  const finalNotes = [...adjustmentNotes];
+
+  function noteDeficit(diff, macroKey) {
+    if(diff >= -TOLERANCE) return;
+    let contributors = appState.plateItems.filter(i => i.refItem && i.primaryMacro === macroKey && i.refItem.m[macroKey] > 0);
+    if(contributors.length === 0) contributors = appState.plateItems.filter(i => i.refItem && i.refItem.m[macroKey] > 0);
+    if(contributors.length > 0) {
+      const main = contributors.reduce((a,b)=> ((b.grams/100)*b.refItem.m[macroKey]) > ((a.grams/100)*a.refItem.m[macroKey]) ? b : a);
+      const addG = Math.round(Math.abs(diff) / (main.refItem.m[macroKey]/100));
+      finalNotes.push(`Faltan ${labels[macroKey]} — añade ~${addG}g extra de ${main.name}.`);
+    } else {
+      finalNotes.push(`Faltan ${labels[macroKey]} — considera añadir más fuente de ${labels[macroKey]}.`);
+    }
+  }
+  noteDeficit(diffP, 'p');
+  noteDeficit(diffH, 'h');
+  noteDeficit(diffG, 'g');
+
+  if(finalNotes.length>0) {
+    suggBox.innerHTML = finalNotes.map(s=>`<div class="suggestion-block">${s}</div>`).join('');
+  } else {
+    suggBox.innerHTML = '<div class="suggestion-block ok">Plato perfectamente equilibrado en sus macros.</div>';
+  }
+  goToScreen('screen-result');
+}
+
+
+// ── MIS MENÚS (platos guardados) ───────────────────────────────────
+// Guarda una "foto" del plato actual (ingredientes + macros + kcal) bajo
+// un nombre elegido por el usuario, accesible luego desde "Mis Menús"
+// (mostrado como "Menús de [nombre]" si hay un nombre de perfil guardado).
+
+function onSliderChange(slider) {
+  const idx = parseInt(slider.dataset.idx);
+  const newGrams = parseInt(slider.value);
+  const item = appState.plateItems[idx];
+  if(!item) return;
+  item.grams = newGrams;
+  const inputEl = document.getElementById('gi-' + idx);
+  if(inputEl) inputEl.value = newGrams;
+  if(item.refItem && item.refItem.u) {
+    const units = (newGrams/100) * item.refItem.u;
+    const unitEl = document.getElementById('ru-' + idx);
+    if(unitEl) unitEl.textContent = `~${units.toFixed(1).replace('.0','')} ${item.refItem.ut}`;
+  }
+  const min = parseInt(slider.min), max = parseInt(slider.max);
+  const pct = Math.max(0, Math.min(100, ((newGrams - min) / (max - min)) * 100));
+  slider.style.background = `linear-gradient(to right, var(--lime-dark) ${pct}%, var(--border-strong) ${pct}%)`;
+  recalcLiveTotals();
+}
+
+function onInputChange(input, idx) {
+  let newGrams = parseInt(input.value);
+  if(isNaN(newGrams) || newGrams < 1) return;
+  const item = appState.plateItems[idx];
+  if(!item) return;
+  item.grams = newGrams;
+  const slider = document.getElementById('gs-' + idx);
+  if(slider) {
+    if(newGrams > parseInt(slider.max)) slider.max = newGrams;
+    if(newGrams < parseInt(slider.min)) slider.min = Math.max(1, newGrams);
+    slider.value = newGrams;
+    const min = parseInt(slider.min), max = parseInt(slider.max);
+    const pct = Math.max(0, Math.min(100, ((newGrams - min) / (max - min)) * 100));
+    slider.style.background = `linear-gradient(to right, var(--lime-dark) ${pct}%, var(--border-strong) ${pct}%)`;
+  }
+  if(item.refItem && item.refItem.u) {
+    const units = (newGrams/100) * item.refItem.u;
+    const unitEl = document.getElementById('ru-' + idx);
+    if(unitEl) unitEl.textContent = `~${units.toFixed(1).replace('.0','')} ${item.refItem.ut}`;
+  }
+  recalcLiveTotals();
+}
+
+function recalcLiveTotals() {
+  const TOLERANCE = 15;
+  let totalP = 0, totalH = 0, totalG = 0;
+  appState.plateItems.forEach(i => {
+    if(i.refItem) {
+      totalP += (i.grams/100) * i.refItem.m.p;
+      totalH += (i.grams/100) * i.refItem.m.h;
+      totalG += (i.grams/100) * i.refItem.m.g;
+    }
+  });
+  const kcal = Math.round(totalP*4 + totalH*4 + totalG*9);
+  document.getElementById('result-kcal-value').textContent = kcal;
+  const tP = appState.targetMealMacros.p;
+  const tH = appState.targetMealMacros.h;
+  const tG = appState.targetMealMacros.g;
+  const makeRow = (label, target, actual) => {
+    const diff = actual - target;
+    const cls = Math.abs(diff)<=TOLERANCE ? 'diff-ok' : (diff>0 ? 'diff-pos' : 'diff-neg');
+    const prefix = diff>0?'+':'';
+    return `<tr><td>${label}</td><td>${Math.round(target)}g</td><td>${Math.round(actual)}g</td><td class="${cls}">${prefix}${Math.round(diff)}g</td></tr>`;
+  };
+  document.getElementById('result-table-body').innerHTML =
+    makeRow('Proteína', tP, totalP) +
+    makeRow('Hidratos', tH, totalH) +
+    makeRow('Grasas', tG, totalG);
+  appState.providedMacros.p = totalP;
+  appState.providedMacros.h = totalH;
+  appState.providedMacros.g = totalG;
+}
+
+function openSaveMenuPrompt() {
+  const el = document.createElement('div');
+  el.className = 'modal-overlay';
+  el.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">Guardar este plato</div>
+      <input type="text" id="save-menu-name-input" placeholder="Ej: Bowl de pollo y arroz" autofocus>
+      <button id="save-menu-confirm" class="btn btn-primary" style="margin-bottom:8px;">Guardar</button>
+      <button id="save-menu-cancel" class="btn btn-secondary" style="margin-bottom:0;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(el);
+  const input = el.querySelector('#save-menu-name-input');
+  input.focus();
+  const confirm = () => {
+    const name = input.value.trim();
+    if(!name) { input.focus(); return; }
+    saveCurrentPlateAsMenu(name);
+    el.remove();
+    showToast(`"${name}" guardado en Mis Menús`);
+  };
+  el.querySelector('#save-menu-confirm').onclick = confirm;
+  el.querySelector('#save-menu-cancel').onclick = () => el.remove();
+  input.addEventListener('keydown', e => { if(e.key==='Enter') confirm(); });
+}
+
+function saveCurrentPlateAsMenu(name) {
+  const menus = getData('kcalSavedMenus', []);
+
+  // Guardamos el plato como RECETA PROPORCIONAL, no como gramos fijos.
+  // Cada ingrediente se guarda con su id de la base de datos y la
+  // PROPORCIÓN del macro objetivo que cubría en el momento de guardar
+  // (ej. "este ingrediente cubría el 35% de la proteína objetivo de
+  // la comida"). Así, cuando el usuario cambie sus kcal objetivo más
+  // adelante, el menú se puede recalcular en gramos reales para el
+  // nuevo objetivo, en vez de quedarse congelado en los gramos de hoy.
+  const targetMacros = appState.targetMealMacros;
+  const items = appState.plateItems.map(i => {
+    const base = {
+      name: i.name,
+      primaryMacro: i.primaryMacro || null,
+      visualUnit: i.visualUnit || '',
+      foodId: i.refItem ? i.refItem.id : null,
+      foodCategory: i.refItem ? Object.keys(foodDB).find(cat => foodDB[cat].some(f => f.id === i.refItem.id)) : null
+    };
+    if(i.refItem && i.primaryMacro && targetMacros[i.primaryMacro] > 0) {
+      // Proporción del macro objetivo de la comida que este ingrediente cubría
+      const macroGiven = (i.grams/100) * i.refItem.m[i.primaryMacro];
+      base.macroShare = macroGiven / targetMacros[i.primaryMacro];
+    } else {
+      // Ingredientes sin refItem (huevo entero, extras fijos) o sin
+      // macro objetivo claro se guardan con gramos fijos como fallback.
+      base.fixedGrams = i.grams;
+    }
+    return base;
+  });
+
+  const realKcal = Math.round(appState.providedMacros.p*4 + appState.providedMacros.h*4 + appState.providedMacros.g*9);
+  const menu = {
+    id: 'menu_' + Date.now(),
+    name,
+    meal: appState.activeMeal,
+    createdAt: todayISO(),
+    items,
+    // Guardamos también la "foto" de macros/kcal originales solo como
+    // referencia histórica (se muestra recalculada al ver el detalle).
+    originalMacros: { p: Math.round(appState.providedMacros.p), h: Math.round(appState.providedMacros.h), g: Math.round(appState.providedMacros.g) },
+    originalKcal: realKcal
+  };
+  menus.push(menu);
+  setData('kcalSavedMenus', menus);
+}
+
+// Recalcula un menú guardado contra los macros objetivo ACTUALES del
+// usuario (que dependen de sus kcal/objetivo de hoy, no de cuando se
+// guardó el plato). Devuelve los ingredientes con gramos recalculados
+// y los macros/kcal totales resultantes.
+function recalculateMenuForCurrentTargets(menu) {
+  const sf = appState.scaleFactor;
+  const base = baseDistribution[menu.meal] || baseDistribution['comida'];
+  const targetMacros = { p: base.p*sf, h: base.h*sf, g: base.g*sf };
+
+  let totals = {p:0, h:0, g:0};
+  const recalculated = menu.items.map(item => {
+    if(item.foodId && item.foodCategory && item.macroShare != null) {
+      const food = foodDB[item.foodCategory] && foodDB[item.foodCategory].find(f => f.id === item.foodId);
+      if(food && item.primaryMacro) {
+        const macroTarget = targetMacros[item.primaryMacro] * item.macroShare;
+        const grams = Math.round((macroTarget / food.m[item.primaryMacro]) * 100);
+        totals.p += (grams/100)*food.m.p;
+        totals.h += (grams/100)*food.m.h;
+        totals.g += (grams/100)*food.m.g;
+        const units = food.u ? (grams/100)*food.u : null;
+        return {
+          name: item.name,
+          grams,
+          visualUnit: units != null ? `~${units.toFixed(1).replace('.0','')} ${food.ut}` : ''
+        };
+      }
+    }
+    // Fallback: ingrediente con gramos fijos (no recalculable, ej. huevo)
+    const grams = item.fixedGrams || 0;
+    return { name: item.name, grams, visualUnit: item.visualUnit || '' };
+  });
+
+  const kcal = Math.round(totals.p*4 + totals.h*4 + totals.g*9);
+  return {
+    items: recalculated,
+    macros: { p: Math.round(totals.p), h: Math.round(totals.h), g: Math.round(totals.g) },
+    kcal,
+    targetMacros: { p: Math.round(targetMacros.p), h: Math.round(targetMacros.h), g: Math.round(targetMacros.g) }
+  };
+}
+
+function renderSavedMenus() {
+  const prof = getData('kcalBoxProfile', null);
+  const title = document.getElementById('saved-menus-title');
+  title.textContent = (prof && prof.name && prof.name.trim()) ? `Menús de ${prof.name.trim()}` : 'Mis Menús';
+
+  const menus = getData('kcalSavedMenus', []);
+  const list = document.getElementById('saved-menus-list');
+
+  if(menus.length === 0) {
+    list.innerHTML = '<div class="no-data">Todavía no has guardado ningún plato.<br>Diseña uno y pulsa "Guardar este plato" al final.</div>';
+    return;
+  }
+
+  const mealOrder = {desayuno:0, comida:1, cena:2, snack:3};
+  const mealLabels = {desayuno:'Desayuno', comida:'Comida', snack:'Snack', cena:'Cena'};
+  const sorted = [...menus].sort((a,b) => (mealOrder[a.meal]??9) - (mealOrder[b.meal]??9));
+  list.innerHTML = '';
+  sorted.forEach(menu => {
+    // Recalculado en tiempo real contra las kcal/macros ACTUALES del
+    // usuario — así la tarjeta siempre refleja la realidad de hoy, no
+    // el día en que se guardó el plato.
+    const live = recalculateMenuForCurrentTargets(menu);
+    const card = document.createElement('div');
+    card.className = 'saved-menu-card';
+    card.innerHTML = `
+      <div class="smc-name">${menu.name}</div>
+      <div class="smc-meta">${mealLabels[menu.meal] || 'Plato libre'} · ${live.items.length} ingrediente${live.items.length!==1?'s':''}</div>
+      <div class="smc-badges">
+        <span class="smc-badge">${live.kcal} kcal</span>
+        <span class="smc-badge">P ${live.macros.p}g</span>
+        <span class="smc-badge">H ${live.macros.h}g</span>
+        <span class="smc-badge">G ${live.macros.g}g</span>
+      </div>`;
+    card.onclick = () => openMenuDetail(menu.id);
+    list.appendChild(card);
+  });
+}
+
+let _currentDetailMenuId = null;
+
+function openMenuDetail(menuId) {
+  const menus = getData('kcalSavedMenus', []);
+  const menu = menus.find(m => m.id === menuId);
+  if(!menu) return;
+  _currentDetailMenuId = menuId;
+
+  // Recalcula el plato en gramos reales según las kcal/macros objetivo
+  // ACTUALES del usuario — el menú guardado es una receta proporcional,
+  // no una foto fija, así que siempre se adapta a lo que necesitas hoy.
+  const live = recalculateMenuForCurrentTargets(menu);
+
+  document.getElementById('menu-detail-title').textContent = menu.name;
+  document.getElementById('menu-detail-items').innerHTML = live.items.map(i => `
+    <div class="result-item">
+      <div><div class="ri-name">${i.name}</div><div class="ri-unit">${i.visualUnit||''}</div></div>
+      <div class="ri-grams">${i.grams}g</div>
+    </div>`).join('');
+  document.getElementById('menu-detail-kcal').textContent = live.kcal;
+  document.getElementById('menu-detail-table-body').innerHTML = `
+    <tr><td>Proteína</td><td>${live.macros.p}g</td></tr>
+    <tr><td>Hidratos</td><td>${live.macros.h}g</td></tr>
+    <tr><td>Grasas</td><td>${live.macros.g}g</td></tr>`;
+
+  goToScreen('screen-menu-detail');
+}
+
+function openRenameMenuPrompt() {
+  if(!_currentDetailMenuId) return;
+  const menus = getData('kcalSavedMenus', []);
+  const menu = menus.find(m => m.id === _currentDetailMenuId);
+  if(!menu) return;
+
+  const el = document.createElement('div');
+  el.className = 'modal-overlay';
+  el.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">Renombrar plato</div>
+      <input type="text" id="rename-menu-input" value="${menu.name}">
+      <button id="rename-menu-confirm" class="btn btn-primary" style="margin-bottom:8px;">Guardar nombre</button>
+      <button id="rename-menu-cancel" class="btn btn-secondary" style="margin-bottom:0;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(el);
+  const input = el.querySelector('#rename-menu-input');
+  input.focus();
+  input.select();
+  const confirm = () => {
+    const newName = input.value.trim();
+    if(!newName) { input.focus(); return; }
+    menu.name = newName;
+    setData('kcalSavedMenus', menus);
+    document.getElementById('menu-detail-title').textContent = newName;
+    el.remove();
+    showToast('Nombre actualizado');
+  };
+  el.querySelector('#rename-menu-confirm').onclick = confirm;
+  el.querySelector('#rename-menu-cancel').onclick = () => el.remove();
+  input.addEventListener('keydown', e => { if(e.key==='Enter') confirm(); });
+}
+
+function confirmDeleteMenu() {
+  if(!_currentDetailMenuId) return;
+  const el = document.createElement('div');
+  el.className = 'modal-overlay';
+  el.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">¿Eliminar este menú?</div>
+      <p style="font-size:0.88rem;color:var(--ink-2);line-height:1.5;margin-bottom:16px;">Esta acción no se puede deshacer.</p>
+      <button id="delete-menu-confirm" class="btn btn-danger" style="margin-bottom:8px;">Sí, eliminar</button>
+      <button id="delete-menu-cancel" class="btn btn-secondary" style="margin-bottom:0;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.querySelector('#delete-menu-confirm').onclick = () => {
+    const menus = getData('kcalSavedMenus', []).filter(m => m.id !== _currentDetailMenuId);
+    setData('kcalSavedMenus', menus);
+    el.remove();
+    showToast('Menú eliminado');
+    renderSavedMenus();
+    goToScreen('screen-saved-menus');
+  };
+  el.querySelector('#delete-menu-cancel').onclick = () => el.remove();
+}
+
+// ── DIARIO DEL DÍA ────────────────────────────────────────────────
+// El diario guarda en localStorage las comidas registradas hoy.
+// Cada entrada tiene: nombre de la comida (desayuno/comida/etc.),
+// una etiqueta libre, y los macros/kcal en el momento del registro.
+// Al pulsar "Reiniciar día", el usuario borra todas las entradas.
+
+function getDiaryKey() {
+  return 'kcalDiary_' + todayISO();
+}
+
+function getDiaryEntries() {
+  return getData(getDiaryKey(), []);
+}
+
+function saveDiaryEntries(entries) {
+  setData(getDiaryKey(), entries);
+}
+
+// Registra el plato actual (construido en el flujo modular) en el diario.
+function registerInDiary() {
+  const mealLabels = {desayuno:'Desayuno', comida:'Comida', snack:'Snack', cena:'Cena'};
+  const mealLabel = mealLabels[appState.activeMeal] || 'Comida';
+  const kcal = Math.round(appState.providedMacros.p*4 + appState.providedMacros.h*4 + appState.providedMacros.g*9);
+  const entry = {
+    id: 'log_' + Date.now(),
+    meal: appState.activeMeal,
+    label: mealLabel,
+    p: Math.round(appState.providedMacros.p),
+    h: Math.round(appState.providedMacros.h),
+    g: Math.round(appState.providedMacros.g),
+    kcal,
+    // Guardamos los ingredientes para poder verlos al clicar en el diario
+    items: appState.plateItems.map(i => ({
+      name: i.name,
+      grams: i.grams,
+      visualUnit: i.visualUnit || ''
+    }))
+  };
+  const entries = getDiaryEntries();
+  entries.push(entry);
+  saveDiaryEntries(entries);
+  renderDailyLog();
+  showToast(`${mealLabel} registrado en el diario de hoy`);
+  goToScreen('screen-welcome');
+}
+
+// Registra un menú guardado desde la pantalla de detalle.
+function registerSavedMenuInDiary() {
+  if(!_currentDetailMenuId) return;
+  const menus = getData('kcalSavedMenus', []);
+  const menu = menus.find(m => m.id === _currentDetailMenuId);
+  if(!menu) return;
+  const live = recalculateMenuForCurrentTargets(menu);
+  const mealLabels = {desayuno:'Desayuno', comida:'Comida', snack:'Snack', cena:'Cena'};
+  const entry = {
+    id: 'log_' + Date.now(),
+    meal: menu.meal,
+    label: mealLabels[menu.meal] || 'Comida',
+    name: menu.name,
+    p: live.macros.p,
+    h: live.macros.h,
+    g: live.macros.g,
+    kcal: live.kcal,
+    items: live.items
+  };
+  const entries = getDiaryEntries();
+  entries.push(entry);
+  saveDiaryEntries(entries);
+  renderDailyLog();
+  showToast(`"${menu.name}" registrado en el diario de hoy`);
+  goToScreen('screen-welcome');
+}
+
+function removeDiaryEntry(id) {
+  const entries = getDiaryEntries().filter(e => e.id !== id);
+  saveDiaryEntries(entries);
+  renderDailyLog();
+}
+
+function renderDailyLog() {
+  const entries = getDiaryEntries();
+  const emptyEl = document.getElementById('daily-log-empty');
+  const entriesEl = document.getElementById('daily-log-entries');
+  const totalsEl = document.getElementById('daily-log-totals');
+  if(!emptyEl) return;
+
+  if(entries.length === 0) {
+    emptyEl.style.display = 'block';
+    entriesEl.style.display = 'none';
+    totalsEl.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  entriesEl.style.display = 'block';
+  totalsEl.style.display = 'block';
+
+  // Lista de entradas — clicables para ver el menú completo
+  const mealLabels = {desayuno:'Desayuno', comida:'Comida', snack:'Snack', cena:'Cena'};
+  entriesEl.innerHTML = entries.map(e => `
+    <div class="log-entry-row" onclick="showDiaryEntryDetail('${e.id}')" style="cursor:pointer;">
+      <div style="flex:1;">
+        <div class="ler-meal">${e.name ? `${e.label} — ${e.name}` : e.label}</div>
+        <div class="ler-meta">P ${e.p}g · H ${e.h}g · G ${e.g}g ${e.items ? '· <span style="color:var(--lime-dark);">ver menú →</span>' : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span class="ler-kcal">${e.kcal} kcal</span>
+        <button class="ler-del" onclick="event.stopPropagation();removeDiaryEntry('${e.id}')" title="Eliminar">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Totales consumidos
+  const totalP = entries.reduce((s,e)=>s+e.p,0);
+  const totalH = entries.reduce((s,e)=>s+e.h,0);
+  const totalG = entries.reduce((s,e)=>s+e.g,0);
+  const totalKcal = entries.reduce((s,e)=>s+e.kcal,0);
+
+  document.getElementById('daily-kcal-done').textContent = totalKcal + ' kcal';
+  document.getElementById('daily-p-done').textContent = totalP + 'g';
+  document.getElementById('daily-h-done').textContent = totalH + 'g';
+  document.getElementById('daily-g-done').textContent = totalG + 'g';
+
+  // Barras de lo que queda
+  const sf = appState.scaleFactor || 1;
+  const targetP = Math.round(200*sf), targetH = Math.round(220*sf), targetG = Math.round(80*sf);
+  const targetKcal = appState.targetKcal || 2400;
+
+  function makebar(label, done, target, color) {
+    const rem = Math.max(0, target - done);
+    const pct = Math.min(100, Math.round((done/target)*100));
+    const over = done > target;
+    return `<div class="remaining-bar-wrap">
+      <div class="remaining-bar-label">
+        <span>${label}</span>
+        <span style="color:${over?'var(--red)':'var(--ink)'};">${over ? '+'+Math.abs(done-target)+'g de más' : rem+'g restantes'}</span>
+      </div>
+      <div class="remaining-bar-track">
+        <div class="remaining-bar-fill" style="width:${pct}%;background:${over?'var(--red)':color};"></div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('daily-remaining-bars').innerHTML =
+    makebar('Proteína', totalP, targetP, '#8ab820') +
+    makebar('Hidratos', totalH, targetH, '#60a5fa') +
+    makebar('Grasas', totalG, targetG, '#f59e0b') +
+    makebar('Kcal', totalKcal, targetKcal, '#8ab820');
+}
+
+function showDiaryEntryDetail(id) {
+  const entries = getDiaryEntries();
+  const e = entries.find(x => x.id === id);
+  if(!e) return;
+
+  const el = document.createElement('div');
+  el.className = 'modal-overlay';
+
+  const itemsHtml = e.items && e.items.length
+    ? e.items.map(i => `
+        <div style="display:flex;justify-content:space-between;align-items:baseline;
+          padding:8px 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:500;font-size:0.88rem;">${i.name}</div>
+            ${i.visualUnit ? `<div style="font-size:0.72rem;color:var(--ink-3);">${i.visualUnit}</div>` : ''}
+          </div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--lime-dark);">${i.grams}g</div>
+        </div>`).join('')
+    : '<p style="color:var(--ink-3);font-size:0.85rem;">No hay detalle de ingredientes guardado.</p>';
+
+  el.innerHTML = `
+    <div class="modal-box" style="max-height:85vh;overflow-y:auto;">
+      <div class="modal-title">${e.name ? `${e.label} — ${e.name}` : e.label}</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <span style="background:var(--lime-pale);color:var(--lime-dark);font-family:'Space Grotesk',sans-serif;font-weight:700;padding:4px 10px;border-radius:20px;font-size:0.85rem;">${e.kcal} kcal</span>
+        <span style="background:var(--surface);padding:4px 10px;border-radius:20px;font-size:0.8rem;color:var(--ink-2);">P ${e.p}g</span>
+        <span style="background:var(--surface);padding:4px 10px;border-radius:20px;font-size:0.8rem;color:var(--ink-2);">H ${e.h}g</span>
+        <span style="background:var(--surface);padding:4px 10px;border-radius:20px;font-size:0.8rem;color:var(--ink-2);">G ${e.g}g</span>
+      </div>
+      <div style="font-size:0.7rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">Ingredientes</div>
+      ${itemsHtml}
+      <button class="btn btn-secondary" style="margin-top:16px;margin-bottom:0;" onclick="this.closest('.modal-overlay').remove()">Cerrar</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.addEventListener('click', ev => { if(ev.target === el) el.remove(); });
+}
+
+function confirmResetDay() {
+  const el = document.createElement('div');
+  el.className = 'modal-overlay';
+  el.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-title">¿Reiniciar el diario de hoy?</div>
+      <p style="font-size:0.88rem;color:var(--ink-2);line-height:1.5;margin-bottom:16px;">Se borrarán todas las comidas registradas hoy. No se puede deshacer.</p>
+      <button id="reset-confirm" class="btn btn-danger" style="margin-bottom:8px;">Sí, reiniciar el día</button>
+      <button id="reset-cancel" class="btn btn-secondary" style="margin-bottom:0;">Cancelar</button>
+    </div>`;
+  document.body.appendChild(el);
+  el.querySelector('#reset-confirm').onclick = () => {
+    saveDiaryEntries([]);
+    renderDailyLog();
+    el.remove();
+    showToast('Diario reiniciado — ¡a por el nuevo día!');
+  };
+  el.querySelector('#reset-cancel').onclick = () => el.remove();
+}
+</script>
+</body>
+</html>
